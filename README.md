@@ -3,6 +3,12 @@ Project for the course *Advanced Deep Learning for Robotics*
 
 ## Requirements
 
+Install pip libraries from requirements file:
+
+```
+pip install -r requirements.txt
+```
+
 Install multi-agent gym environment
 
 ``` bash
