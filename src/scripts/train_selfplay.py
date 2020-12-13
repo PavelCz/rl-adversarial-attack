@@ -25,7 +25,7 @@ def main():
     print(f"Average round reward: {avg_round_reward}")
 
 
-def evaluate(main_model, env):
+def evaluate(model, env):
     num_eps = 100
     total_reward = 0
     total_rounds = 0
@@ -36,7 +36,7 @@ def evaluate(main_model, env):
         obs = env.reset()
         info = None
         while not done:
-            action, _states = main_model.predict(obs, deterministic=True)
+            action, _states = model.predict(obs, deterministic=True)
             obs, reward, done, info = env.step(action)
             ep_reward += reward
             # env.render()
