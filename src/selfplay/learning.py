@@ -9,7 +9,7 @@ from src.agents.random_agent import RandomAgent
 from src.selfplay.opponent_wrapper import OpponentWrapper
 
 
-def learn_with_selfplay(max_agents=10):
+def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
     # Initialize environment
     env = gym.make('PongDuel-v0')
     env = OpponentWrapper(env)
@@ -41,7 +41,7 @@ def learn_with_selfplay(max_agents=10):
         # Take opponent from the previous version of the model
         env.set_opponent(previous_models[i])
 
-        main_model.learn(total_timesteps=1_000_000)
+        main_model.learn(total_timesteps=num_learn_steps)
         # Save the further trained model to disk
         main_model.save(_make_model_path(i + 1))
         # Make a copy of the just saved model by loading it
@@ -49,11 +49,11 @@ def learn_with_selfplay(max_agents=10):
         # Save the copy to the list
         previous_models.append(copy_of_model)
         # Do evaluation for this training round
-        avg_round_reward = evaluate(main_model, env)
+        avg_round_reward = evaluate(main_model, env, num_eps=num_eval_eps)
         print(f"Average round reward after training: {avg_round_reward}")
 
     # Evaluate the last model against each of its previous iterations
-    _evaluate_against_predecessors(previous_models, env)
+    _evaluate_against_predecessors(previous_models, env, num_eval_eps)
 
 
 def _make_model_path(i):
@@ -61,8 +61,7 @@ def _make_model_path(i):
     return model_dir + 'ppo-' + str(i) + '.out'
 
 
-def evaluate(model, env):
-    num_eps = 100
+def evaluate(model, env, num_eps):
     total_reward = 0
     total_rounds = 0
     for episode in range(num_eps):
@@ -84,10 +83,10 @@ def evaluate(model, env):
     return avg_round_reward
 
 
-def _evaluate_against_predecessors(previous_models, env):
+def _evaluate_against_predecessors(previous_models, env, num_eval_eps):
     last_model = previous_models[-1]
     last_model_index = len(previous_models) - 1
     for i, model in enumerate(previous_models):
         env.set_opponent(model)
-        avg_round_reward = evaluate(last_model, env)
+        avg_round_reward = evaluate(last_model, env, num_eps=num_eval_eps)
         print(f"Model {last_model_index} against {i}: {avg_round_reward}")
