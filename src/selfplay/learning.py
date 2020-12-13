@@ -44,8 +44,10 @@ def learn_with_selfplay(max_agents=10):
         main_model.learn(total_timesteps=1_000_000)
         # Save the further trained model to disk
         main_model.save(_make_model_path(i + 1))
-        # Also save a copy to the list
-        previous_models.append(copy.deepcopy(main_model))
+        # Make a copy of the just saved model by loading it
+        copy_of_model = PPO.load(_make_model_path(i + 1))
+        # Save the copy to the list
+        previous_models.append(copy_of_model)
         # Do evaluation for this training round
         avg_round_reward = evaluate(main_model, env)
         print(f"Average round reward after training: {avg_round_reward}")
