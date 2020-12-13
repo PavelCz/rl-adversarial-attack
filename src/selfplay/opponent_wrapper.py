@@ -17,6 +17,9 @@ class OpponentWrapper(gym.Wrapper):
         super(OpponentWrapper, self).__init__(env)
         self.opponent = opponent
         self.opponent_obs = None  # The previous observation that is meant for the opponent
+        # Overwrite the variable to make sense for single-agent env
+        self.observation_space = self.observation_space[0]
+        self.action_space = self.action_space[0]
 
     def reset(self):
         """
@@ -46,8 +49,11 @@ class OpponentWrapper(gym.Wrapper):
         # Here we destructure the 4 lists which have 2 elements each into their components
         # If this destructuring fails this most likely means these 4 lists don't have 2 pieces, i.e. the multi-agent
         # environment is not a 2-agent environment
-        [main_obs, opponent_obs], [main_reward, _], [main_done, _], [main_info, _] = self.env.step(actions)
+        [main_obs, opponent_obs], [main_reward, _], [main_done, _], info = self.env.step(actions)
         # Update the observation that is needed by the opponent in the next step
         self.opponent_obs = opponent_obs
         # Return only the vars that are meant for the main agent
-        return main_obs, main_reward, main_done, main_info
+        return main_obs, main_reward, main_done, info
+
+    def set_opponent(self, opponent):
+        self.opponent = opponent
