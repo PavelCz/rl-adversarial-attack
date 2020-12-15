@@ -20,6 +20,7 @@ class OpponentWrapper(gym.Wrapper):
         # Overwrite the variable to make sense for single-agent env
         self.observation_space = self.observation_space[0]
         self.action_space = self.action_space[0]
+        self.opponent_right_side = True
 
     def reset(self):
         """
@@ -31,7 +32,10 @@ class OpponentWrapper(gym.Wrapper):
             raise AttributeError(
                 f"Wrong number of observations, should be 2, is {len(multi_obs)}. Currently, only environments for "
                 f"exactly 2 agents are supported")
-        [main_obs, opponent_obs] = self.env.reset()
+        if self.opponent_right_side:
+            [main_obs, opponent_obs] = self.env.reset()
+        else:
+            [opponent_obs, main_obs] = self.env.reset()
         # Save opponent observation for later
         self.opponent_obs = opponent_obs
         # Return the observation that is meant for the main agent
@@ -45,11 +49,16 @@ class OpponentWrapper(gym.Wrapper):
         # Get the action taken by the opponent, based on the observation that is meant for the opponent
         opponent_action, _states = self.opponent.predict(self.opponent_obs)
         # Concatenate opponent + main agent actions
-        actions = [action, opponent_action]
-        # Here we destructure the 4 lists which have 2 elements each into their components
-        # If this destructuring fails this most likely means these 4 lists don't have 2 pieces, i.e. the multi-agent
-        # environment is not a 2-agent environment
-        [main_obs, opponent_obs], [main_reward, _], [main_done, _], info = self.env.step(actions)
+        if self.opponent_right_side:
+            actions = [action, opponent_action]
+            # Here we destructure the 4 lists which have 2 elements each into their components
+            # If this destructuring fails this most likely means these 4 lists don't have 2 pieces, i.e. the multi-agent
+            # environment is not a 2-agent environment
+            [main_obs, opponent_obs], [main_reward, _], [main_done, _], info = self.env.step(actions)
+        else:  # Same as other case above just with left and right side switched
+            actions = [opponent_action, action]
+            [opponent_obs, main_obs], [_, main_reward], [_, main_done], info = self.env.step(actions)
+
         # Update the observation that is needed by the opponent in the next step
         self.opponent_obs = opponent_obs
         # Return only the vars that are meant for the main agent
@@ -57,3 +66,6 @@ class OpponentWrapper(gym.Wrapper):
 
     def set_opponent(self, opponent):
         self.opponent = opponent
+
+    def set_opponent_right_side(self, opponent_right_side):
+        self.opponent_right_side = opponent_right_side
