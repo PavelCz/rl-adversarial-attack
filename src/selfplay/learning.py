@@ -28,20 +28,24 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
             break
 
     # Initialize first round
-    last_agent = len(previous_models) - 1
-    if last_agent == 0:
+    last_agent_id = len(previous_models) - 1
+    if last_agent_id == 0:
         main_model = PPO('MlpPolicy', env, verbose=0)
     else:
-        main_model = copy.deepcopy(previous_models[last_agent])
+        main_model = copy.deepcopy(previous_models[last_agent_id])
         main_model.set_env(env)
 
     # Start training with self-play over several rounds
-    for i in range(last_agent, max_agents):
-        print(f"Running training round {i+1}")
+    for i in range(last_agent_id, max_agents - 1):
+        print(f"Running training round {i + 1}")
         # Take opponent from the previous version of the model
         env.set_opponent(previous_models[i])
-
-        main_model.learn(total_timesteps=num_learn_steps)
+        num_learn_iterations = 10
+        for _ in range(int(num_learn_iterations / 2)):
+            env.set_opponent_right_side(True)
+            main_model.learn(total_timesteps=num_learn_steps / num_learn_iterations)
+            env.set_opponent_right_side(False)
+            main_model.learn(total_timesteps=num_learn_steps / num_learn_iterations)
         # Save the further trained model to disk
         main_model.save(_make_model_path(i + 1))
         # Make a copy of the just saved model by loading it
@@ -62,6 +66,7 @@ def _make_model_path(i):
 
 
 def evaluate(model, env, num_eps):
+    env.set_opponent_right_side(True)
     total_reward = 0
     total_rounds = 0
     for episode in range(num_eps):
@@ -71,7 +76,7 @@ def evaluate(model, env, num_eps):
         obs = env.reset()
         info = None
         while not done:
-            action, _states = model.predict(obs, deterministic=True)
+            action, _states = model.predict(obs)  # , deterministic=True)
             obs, reward, done, info = env.step(action)
             ep_reward += reward
             # env.render()
