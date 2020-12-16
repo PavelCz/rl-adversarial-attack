@@ -40,3 +40,11 @@ git clone https://github.com/koulanurag/ma-gym.git
 cd ma-gym
 pip install -e .
 ```
+
+## Train Neural Fictitious Self-Play(NFSP)
+
+Add argument `--evaluate` for testing and `--render` for watching agents playing on screen
+
+```
+python main.py --env 'PongDuel-v0'
+```
