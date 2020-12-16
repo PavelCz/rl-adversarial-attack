@@ -1,4 +1,5 @@
 import gym
+import numpy as np
 
 
 class OpponentWrapper(gym.Wrapper):
@@ -39,7 +40,7 @@ class OpponentWrapper(gym.Wrapper):
         # Save opponent observation for later
         self.opponent_obs = opponent_obs
         # Return the observation that is meant for the main agent
-        return main_obs
+        return np.array(main_obs)
 
     def step(self, action):
         """
@@ -47,7 +48,11 @@ class OpponentWrapper(gym.Wrapper):
         :return: (np.ndarray, float, bool, dict) observation, reward, is the episode over?, additional informations
         """
         # Get the action taken by the opponent, based on the observation that is meant for the opponent
-        opponent_action, _states = self.opponent.predict(self.opponent_obs)
+        opponent_action, _states = self.opponent.predict(np.array(self.opponent_obs), deterministic=True)
+
+        #action = list(action)
+        #opponent_action = list(opponent_action)
+
         # Concatenate opponent + main agent actions
         if self.opponent_right_side:
             actions = [action, opponent_action]
@@ -62,7 +67,7 @@ class OpponentWrapper(gym.Wrapper):
         # Update the observation that is needed by the opponent in the next step
         self.opponent_obs = opponent_obs
         # Return only the vars that are meant for the main agent
-        return main_obs, main_reward, main_done, info
+        return np.array(main_obs), main_reward, main_done, info
 
     def set_opponent(self, opponent):
         self.opponent = opponent
