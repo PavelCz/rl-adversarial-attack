@@ -1,5 +1,6 @@
 import os
 import copy
+import time
 
 import gym
 import ma_gym  # Necessary so the PongDuel env exists
@@ -65,7 +66,7 @@ def _make_model_path(i):
     return model_dir + 'dqn-' + str(i) + '.out'
 
 
-def evaluate(model, env, num_eps):
+def evaluate(model, env, num_eps, render=False):
     env.set_opponent_right_side(True)
     total_reward = 0
     total_rounds = 0
@@ -79,7 +80,9 @@ def evaluate(model, env, num_eps):
             action, _states = model.predict(obs, deterministic=True)
             obs, reward, done, info = env.step(action)
             ep_reward += reward
-            # env.render()
+            if render:
+                time.sleep(0.1)
+                env.render()
         total_reward += ep_reward
         total_rounds += info['rounds']
     env.close()
