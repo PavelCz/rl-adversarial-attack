@@ -31,7 +31,7 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
     # Initialize first round
     last_agent_id = len(previous_models) - 1
     if last_agent_id == 0:
-        main_model = DQN('MlpPolicy', env, verbose=0, tensorboard_log="output/tb-log")
+        main_model = DQN('MlpPolicy', env, verbose=0, tensorboard_log="output/tb-log", exploration_fraction=0.3)
     else:
         main_model = copy.deepcopy(previous_models[last_agent_id])
         main_model.set_env(env)
