@@ -7,12 +7,14 @@ import ma_gym  # Necessary so the PongDuel env exists
 from stable_baselines3 import PPO, DQN
 
 from src.agents.random_agent import RandomAgent
+from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.opponent_wrapper import OpponentWrapper
 
 
 def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
     # Initialize environment
     env = gym.make('PongDuel-v0')
+    env = RewardZeroToNegativeBiAgentWrapper(env)
     env = OpponentWrapper(env)
 
     # Initialize first agent
