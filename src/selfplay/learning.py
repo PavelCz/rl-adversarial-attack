@@ -31,10 +31,11 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
     # Initialize first round
     last_agent_id = len(previous_models) - 1
     if last_agent_id == 0:
-        main_model = DQN('MlpPolicy', env, verbose=0)
+        main_model = DQN('MlpPolicy', env, verbose=0, tensorboard_log="output/tb-log")
     else:
         main_model = copy.deepcopy(previous_models[last_agent_id])
         main_model.set_env(env)
+        main_model.tensorboard_log = "output/tb-log"
 
     # Start training with self-play over several rounds
     for i in range(last_agent_id, max_agents - 1):
@@ -44,9 +45,9 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
         num_learn_iterations = 10
         for _ in range(int(num_learn_iterations / 2)):
             env.set_opponent_right_side(True)
-            main_model.learn(total_timesteps=num_learn_steps / num_learn_iterations)
+            main_model.learn(total_timesteps=num_learn_steps / num_learn_iterations, tb_log_name="log")
             env.set_opponent_right_side(False)
-            main_model.learn(total_timesteps=num_learn_steps / num_learn_iterations)
+            main_model.learn(total_timesteps=num_learn_steps / num_learn_iterations, tb_log_name="log")
         # Save the further trained model to disk
         main_model.save(_make_model_path(i + 1))
         # Make a copy of the just saved model by loading it
@@ -63,7 +64,7 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
 
 def _make_model_path(i):
     model_dir = 'output/models/'
-    return model_dir + 'dqn-' + str(i) + '.out'
+    return model_dir + 'dqn2-' + str(i) + '.out'
 
 
 def evaluate(model, env, num_eps, render=False):
