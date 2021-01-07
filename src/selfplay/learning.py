@@ -4,7 +4,7 @@ import time
 
 import gym
 import ma_gym  # Necessary so the PongDuel env exists
-from stable_baselines3 import PPO, DQN
+from stable_baselines3 import PPO, DQN, A2C
 
 from src.agents.random_agent import RandomAgent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
@@ -25,7 +25,7 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
     for i in range(1, max_agents):
         path = _make_model_path(i)
         if os.path.isfile(path):
-            model = DQN.load(path)
+            model = A2C.load(path)
             previous_models.append(model)
         else:
             break
@@ -33,7 +33,7 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
     # Initialize first round
     last_agent_id = len(previous_models) - 1
     if last_agent_id == 0:
-        main_model = DQN('MlpPolicy', env, verbose=0, tensorboard_log="output/tb-log", exploration_fraction=0.3)
+        main_model = A2C('MlpPolicy', env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
     else:
         main_model = copy.deepcopy(previous_models[last_agent_id])
         main_model.set_env(env)
@@ -53,7 +53,7 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
         # Save the further trained model to disk
         main_model.save(_make_model_path(i + 1))
         # Make a copy of the just saved model by loading it
-        copy_of_model = DQN.load(_make_model_path(i + 1))
+        copy_of_model = A2C.load(_make_model_path(i + 1))
         # Save the copy to the list
         previous_models.append(copy_of_model)
         # Do evaluation for this training round
@@ -66,7 +66,7 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
 
 def _make_model_path(i):
     model_dir = 'output/models/'
-    return model_dir + 'dqn2-' + str(i) + '.out'
+    return model_dir + 'sac-' + str(i) + '.out'
 
 
 def evaluate(model, env, num_eps, render=False):
