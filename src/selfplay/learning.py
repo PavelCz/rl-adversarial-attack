@@ -11,11 +11,11 @@ from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.opponent_wrapper import OpponentWrapper
 
 
-def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps):
+def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0):
     # Initialize environment
     env = gym.make('PongDuel-v0')
     env = RewardZeroToNegativeBiAgentWrapper(env)
-    env = OpponentWrapper(env)
+    env = OpponentWrapper(env, num_skip_steps=num_skip_steps)
 
     # Initialize first agent
     rand_agent = RandomAgent(env)

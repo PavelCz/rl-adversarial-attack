@@ -14,7 +14,7 @@ class OpponentWrapper(gym.Wrapper):
     :param opponent: This agent will be used as the opponent in the multi-agent environment
     """
 
-    def __init__(self, env: gym.Env, opponent=None):
+    def __init__(self, env: gym.Env, opponent=None, num_skip_steps=0):
         super(OpponentWrapper, self).__init__(env)
         self.opponent = opponent
         self.opponent_obs = None  # The previous observation that is meant for the opponent
@@ -22,6 +22,7 @@ class OpponentWrapper(gym.Wrapper):
         self.observation_space = self.observation_space[0]
         self.action_space = self.action_space[0]
         self.opponent_right_side = True
+        self.num_skip_steps=num_skip_steps
 
     def reset(self):
         """
@@ -59,10 +60,12 @@ class OpponentWrapper(gym.Wrapper):
             # Here we destructure the 4 lists which have 2 elements each into their components
             # If this destructuring fails this most likely means these 4 lists don't have 2 pieces, i.e. the multi-agent
             # environment is not a 2-agent environment
-            [main_obs, opponent_obs], [main_reward, _], [main_done, _], info = self.env.step(actions)
+            for _ in range(self.num_skip_steps + 1):
+                [main_obs, opponent_obs], [main_reward, _], [main_done, _], info = self.env.step(actions)
         else:  # Same as other case above just with left and right side switched
             actions = [opponent_action, action]
-            [opponent_obs, main_obs], [_, main_reward], [_, main_done], info = self.env.step(actions)
+            for _ in range(self.num_skip_steps + 1):
+                [opponent_obs, main_obs], [_, main_reward], [_, main_done], info = self.env.step(actions)
 
         # Update the observation that is needed by the opponent in the next step
         self.opponent_obs = opponent_obs
