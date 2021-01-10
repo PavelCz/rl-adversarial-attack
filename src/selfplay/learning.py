@@ -69,7 +69,7 @@ def _make_model_path(i):
     return model_dir + 'sac-' + str(i) + '.out'
 
 
-def evaluate(model, env, num_eps, render=False):
+def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False):
     env.set_opponent_right_side(True)
     total_reward = 0
     total_rounds = 0
@@ -84,8 +84,10 @@ def evaluate(model, env, num_eps, render=False):
             obs, reward, done, info = env.step(action)
             ep_reward += reward
             if render:
-                time.sleep(0.1)
+                time.sleep(slowness)
                 env.render()
+            if print_obs:
+                print('\r', *obs, end="")
         total_reward += ep_reward
         total_rounds += info['rounds']
     env.close()
