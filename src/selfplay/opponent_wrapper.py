@@ -2,6 +2,21 @@ import gym
 import numpy as np
 
 
+def flip_observation_horizontally(obs):
+    # Ball directions should be ['NW', 'W', 'SW', 'SE', 'E', 'NE']
+    # COnsequently, when we reverse ball direction array, we flip horizontally
+    agent_pos, ball_pos, ball_dir = obs[:2], obs[2:4], obs[4:]
+
+    # Perform the flipping
+    agent_pos[1] = 1 - agent_pos[1]
+    ball_pos[1] = 1 - ball_pos[1]
+    ball_dir.reverse()
+
+    # Merge into single obs list
+    reversed_obs = agent_pos + ball_pos + ball_dir
+    return reversed_obs
+
+
 class OpponentWrapper(gym.Wrapper):
     """
     This wrapper allows multi-agent environment to be used with agents that expect normal gym-environments. It allows to
@@ -22,7 +37,7 @@ class OpponentWrapper(gym.Wrapper):
         self.observation_space = self.observation_space[0]
         self.action_space = self.action_space[0]
         self.opponent_right_side = True
-        self.num_skip_steps=num_skip_steps
+        self.num_skip_steps = num_skip_steps
 
     def reset(self):
         """
@@ -48,11 +63,13 @@ class OpponentWrapper(gym.Wrapper):
         :param action: ([float] or int) Action taken by the agent
         :return: (np.ndarray, float, bool, dict) observation, reward, is the episode over?, additional informations
         """
+        # Flip the observation for the opponent, such that from the opponents viewpoint it is also on the left side
+        obs_for_opponent = flip_observation_horizontally(self.opponent_obs)
         # Get the action taken by the opponent, based on the observation that is meant for the opponent
-        opponent_action, _states = self.opponent.predict(np.array(self.opponent_obs), deterministic=True)
+        opponent_action, _states = self.opponent.predict(np.array(obs_for_opponent), deterministic=True)
 
-        #action = list(action)
-        #opponent_action = list(opponent_action)
+        # action = list(action)
+        # opponent_action = list(opponent_action)
 
         # Concatenate opponent + main agent actions
         if self.opponent_right_side:
