@@ -7,7 +7,7 @@ def get_args():
     # Basic Arguments
     parser.add_argument('--seed', type=int, default=1122,
                         help='Random seed')
-    parser.add_argument('--batch-size', type=int, default=32,
+    parser.add_argument('--batch-size', type=int, default=128,
                         help='Batch size')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
@@ -33,8 +33,8 @@ def get_args():
     # Algorithm Arguments
     parser.add_argument('--dueling', action='store_true',
                         help='Enable Dueling Network')
-    parser.add_argument('--multi-step', type=int, default=1,
-                        help='N-Step Learning')
+    parser.add_argument('--frame_skipping', type=int, default=1,
+                        help='Agent takes actions at every k frames')
 
     # Environment Arguments
     parser.add_argument('--env', type=str, default='LaserTag-small2-v0',
@@ -44,16 +44,20 @@ def get_args():
     parser.add_argument('--obs_img', action='store_true', default=False)
 
     # Evaluation Arguments
-    parser.add_argument('--load-model', type=str, default=None,
-                        help='Pretrained model name to load (state dict)')
+    parser.add_argument('--load-model', action='store_true', default=False,
+                        help='Load model from checkpoint and resume training')
     parser.add_argument('--save-model', type=str, default='model',
-                        help='Pretrained model name to save (state dict)')
+                        help='Model name to save')
     parser.add_argument('--evaluate', action='store_true',
                         help='Evaluate only')
     parser.add_argument('--render', action='store_true',
                         help='Render evaluation agent')
+    parser.add_argument('--monitor', action='store_true',
+                        help='Record agent playing')
     parser.add_argument('--evaluation-interval', type=int, default=10000,
                         help='Frames for evaluation interval')
+    parser.add_argument('--fgsm', action='store_true', default=False,
+                        help='Fast Gradient Sign Attack')
 
     # Optimization Arguments
     parser.add_argument('--lr', type=float, default=1e-4,
@@ -64,7 +68,7 @@ def get_args():
                         help='Start value of epsilon')
     parser.add_argument('--eps-final', type=float, default=0.01,
                         help='Final value of epsilon')
-    parser.add_argument('--eps-decay', type=int, default=30000,
+    parser.add_argument('--eps-decay', type=int, default=300000,
                         help='Adjustment parameter for epsilon')
 
     args = parser.parse_args()

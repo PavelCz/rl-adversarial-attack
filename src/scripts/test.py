@@ -7,6 +7,7 @@ import os
 from time import sleep
 from src.common.utils import load_model
 from src.selfplay.model import DQN, Policy
+from src.attacks.fgsm import fgsm_attack
 
 def test(env, args): 
     p1_current_model = DQN(env, args).to(args.device)
@@ -36,12 +37,14 @@ def test(env, args):
                 sleep(0.01)
 
             # Random Action Agent
-            p1_action = env.action_space.sample()[0]
-            # p2_action = env.action_space.sample()[1]
+            # p1_action = env.action_space.sample()[0]
+            p2_action = env.action_space.sample()[1]
 
             # Agents follow average strategy
-            # p1_action = p1_policy.act(torch.FloatTensor(p1_state).to(args.device))
-            p2_action = p2_policy.act(torch.FloatTensor(p2_state).to(args.device))
+            if args.fgsm is True:
+                p1_state = fgsm_attack(torch.tensor(p1_state).to(args.device), p1_policy, 0.05, args)
+            p1_action = p1_policy.act(torch.tensor(p1_state).to(args.device))
+            # p2_action = p2_policy.act(torch.tensor(p2_state).to(args.device))
 
             actions = [p1_action, p2_action]
             next_state, reward, done, info = env.step(actions)
@@ -55,7 +58,7 @@ def test(env, args):
                 p2_reward_list.append(p2_episode_reward)
                 length_list.append(episode_length)
                 break
-    print()
+
     print("Test Result - Length {:.2f} p1/Reward {:.2f} p2/Reward {:.2f}".format(
         np.mean(length_list), np.mean(p1_reward_list), np.mean(p2_reward_list)))
     
