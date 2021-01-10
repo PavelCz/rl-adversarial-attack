@@ -22,15 +22,6 @@ pip install -r requirements.txt
 conda install pytorch torchvision torchaudio -c pytorch
 ```
 
-### Install spinningup
-
-At the same level as the project repository do:
-
-``` bash
-git clone https://github.com/openai/spinningup.git
-cd spinningup
-pip install -e .
-```
 
 ### Install multi-agent gym environment
 
