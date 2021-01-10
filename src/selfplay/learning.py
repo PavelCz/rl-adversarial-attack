@@ -5,8 +5,10 @@ import time
 import gym
 import ma_gym  # Necessary so the PongDuel env exists
 from stable_baselines3 import PPO, DQN, A2C
+from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 
 from src.agents.random_agent import RandomAgent
+from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.opponent_wrapper import OpponentWrapper
 
@@ -14,11 +16,11 @@ from src.selfplay.opponent_wrapper import OpponentWrapper
 def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0):
     # Initialize environment
     env = gym.make('PongDuel-v0')
-    env = RewardZeroToNegativeBiAgentWrapper(env)
+    # env = RewardZeroToNegativeBiAgentWrapper(env)
     env = OpponentWrapper(env, num_skip_steps=num_skip_steps)
 
     # Initialize first agent
-    rand_agent = RandomAgent(env)
+    rand_agent = SimpleRuleBasedAgent(env)
     previous_models = [rand_agent]
 
     # Load potentially saved previous models
@@ -33,7 +35,9 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
     # Initialize first round
     last_agent_id = len(previous_models) - 1
     if last_agent_id == 0:
-        main_model = A2C('MlpPolicy', env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
+        main_model = A2C('MlpPolicy', policy_kwargs=dict(optimizer_class=RMSpropTFLike), env=env, verbose=0,
+                         tensorboard_log="output/tb-log")
+        # main_model = A2C('MlpPolicy', env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
     else:
         main_model = copy.deepcopy(previous_models[last_agent_id])
         main_model.set_env(env)
