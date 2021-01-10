@@ -56,8 +56,8 @@ def get_args():
                         help='Record agent playing')
     parser.add_argument('--evaluation-interval', type=int, default=10000,
                         help='Frames for evaluation interval')
-    parser.add_argument('--fgsm', action='store_true', default=False,
-                        help='Fast Gradient Sign Attack')
+    parser.add_argument('--fgsm', type=int, default=None,
+                        help='Select an agent to attack with Fast Gradient Sign Method(FGSM)')
 
     # Optimization Arguments
     parser.add_argument('--lr', type=float, default=1e-4,

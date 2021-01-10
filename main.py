@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import gym
 import ma_gym
+from ma_gym.wrappers import Monitor
 import lasertag
 import time, os
 from tensorboardX import SummaryWriter
@@ -27,6 +28,8 @@ def main():
     env.seed(args.seed)
 
     if args.evaluate:
+        if args.monitor:
+            env = Monitor(env, './', force=True)
         test(env, args)
         env.close()
         return

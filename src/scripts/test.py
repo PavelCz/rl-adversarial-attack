@@ -38,13 +38,16 @@ def test(env, args):
 
             # Random Action Agent
             # p1_action = env.action_space.sample()[0]
-            p2_action = env.action_space.sample()[1]
+            # p2_action = env.action_space.sample()[1]
 
             # Agents follow average strategy
-            if args.fgsm is True:
+            if args.fgsm == 1:
                 p1_state = fgsm_attack(torch.tensor(p1_state).to(args.device), p1_policy, 0.05, args)
+            elif args.fgsm == 2:
+                p2_state = fgsm_attack(torch.tensor(p2_state).to(args.device), p2_policy, 0.05, args)
+
             p1_action = p1_policy.act(torch.tensor(p1_state).to(args.device))
-            # p2_action = p2_policy.act(torch.tensor(p2_state).to(args.device))
+            p2_action = p2_policy.act(torch.tensor(p2_state).to(args.device))
 
             actions = [p1_action, p2_action]
             next_state, reward, done, info = env.step(actions)

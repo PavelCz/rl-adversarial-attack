@@ -34,7 +34,7 @@ pip install -e .
 
 ## Train Neural Fictitious Self-Play(NFSP)
 
-Add argument `--evaluate` for testing and `--render` for watching agents playing on screen
+Add argument `--evaluate` for testing and `--render` for watching agents playing on screen. To attack agent 1 with Fast Gradient Sign Method(FGSM) use `--fgsm 1`
 
 ```
 python main.py --env 'PongDuel-v0'
