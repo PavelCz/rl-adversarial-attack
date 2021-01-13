@@ -9,7 +9,7 @@ from src.selfplay.opponent_wrapper import OpponentWrapper
 from ma_gym.wrappers import Monitor
 
 
-def main(save_video=False, num_eps=1):
+def main(save_video=False, num_eps=1, render=True):
     # Initialize environment
     env = gym.make('PongDuel-v0')
     if save_video:
@@ -22,9 +22,9 @@ def main(save_video=False, num_eps=1):
     op = RandomAgent(env)
     # op = SimpleRuleBasedAgent(env)
     env.set_opponent(op)
-    avg_reward = evaluate(model, env, slowness=0.05, num_eps=num_eps, render=True, print_obs=False, verbose=False)
+    avg_reward = evaluate(model, env, slowness=0.05, num_eps=num_eps, render=render, print_obs=False, verbose=False)
     print(avg_reward)
 
 
 if __name__ == '__main__':
-    main(num_eps=100)
+    main(num_eps=100, render=False)
