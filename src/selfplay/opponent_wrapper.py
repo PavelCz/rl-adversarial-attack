@@ -67,10 +67,13 @@ class OpponentWrapper(gym.Wrapper):
         # Flip the observation for the opponent, such that from the opponents viewpoint it is also on the left side
         obs_for_opponent = flip_observation_horizontally(self.opponent_obs)
         # Get the action taken by the opponent, based on the observation that is meant for the opponent
-        opponent_action, _states = self.opponent.predict(np.array(obs_for_opponent[:4]), deterministic=True)
+        opponent_action, _states = self.opponent.predict(np.array(obs_for_opponent[:4]), deterministic=False)
 
         # action = list(action)
-        # opponent_action = list(opponent_action)
+        if isinstance(opponent_action, list) or isinstance(opponent_action, np.ndarray):
+            opponent_action = opponent_action[0]
+        if isinstance(action, list) or isinstance(action, np.ndarray):
+            action = action[0]
 
         # Concatenate opponent + main agent actions
         if self.opponent_right_side:
@@ -87,6 +90,9 @@ class OpponentWrapper(gym.Wrapper):
 
         # Update the observation that is needed by the opponent in the next step
         self.opponent_obs = opponent_obs
+        #if(main_done is True):
+        #    print("=\n=\n=\n")
+        #print(f"\r{(main_obs[:4], main_reward, main_done, info, action)}")
         # Return only the vars that are meant for the main agent
         return np.array(main_obs[:4]), main_reward, main_done, info
 
