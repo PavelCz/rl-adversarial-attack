@@ -4,6 +4,7 @@ import time
 
 import gym
 import ma_gym  # Necessary so the PongDuel env exists
+import numpy as np
 from stable_baselines3 import PPO, DQN, A2C
 from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 
@@ -16,12 +17,15 @@ from src.selfplay.opponent_wrapper import OpponentWrapper
 
 def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0, model_name='dqn'):
     # Initialize environment
-    env = gym.make('PongDuel-v0')
-    # env = RewardZeroToNegativeBiAgentWrapper(env)
-    env = OpponentWrapper(env, num_skip_steps=num_skip_steps)
+    train_env = gym.make('PongDuel-v0')
+    train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
+    train_env = OpponentWrapper(train_env, num_skip_steps=num_skip_steps)
+
+    eval_env = gym.make('PongDuel-v0')
+    eval_env = OpponentWrapper(eval_env, num_skip_steps=num_skip_steps)
 
     # Initialize first agent
-    rand_agent = SimpleRuleBasedAgent(env)
+    rand_agent = SimpleRuleBasedAgent(train_env)
     previous_models = [rand_agent]
 
     # Load potentially saved previous models
@@ -36,21 +40,23 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
     # Initialize first round
     last_agent_id = len(previous_models) - 1
     if last_agent_id == 0:
-        main_model = A2C('MlpPolicy', policy_kwargs=dict(optimizer_class=RMSpropTFLike), env=env, verbose=0,
-                         tensorboard_log="output/tb-log")
+        # main_model = A2C('MlpPolicy', policy_kwargs=dict(optimizer_class=RMSpropTFLike, optimizer_kwargs=dict(eps=1e-5)), env=env, verbose=0,
+        #                 tensorboard_log="output/tb-log")
         # main_model = A2C('MlpPolicy', env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
+        main_model = DQN('MlpPolicy', train_env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
     else:
         main_model = copy.deepcopy(previous_models[last_agent_id])
-        main_model.set_env(env)
+        main_model.set_env(train_env)
         main_model.tensorboard_log = "output/tb-log"
 
     # Start training with self-play over several rounds
     for i in range(last_agent_id, max_agents - 1):
         print(f"Running training round {i + 1}")
         # Take opponent from the previous version of the model
-        env.set_opponent(previous_models[i])
-        env.set_opponent_right_side(True)
-        main_model.learn(total_timesteps=num_learn_steps, tb_log_name="log")
+        train_env.set_opponent(previous_models[i])
+        eval_env.set_opponent(previous_models[i])
+        train_env.set_opponent_right_side(True)
+        main_model.learn(total_timesteps=num_learn_steps, tb_log_name="log")  # , callback=learn_callback)
         # Save the further trained model to disk
         main_model.save(_make_model_path(model_name, i + 1))
         # Make a copy of the just saved model by loading it
@@ -58,11 +64,11 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
         # Save the copy to the list
         previous_models.append(copy_of_model)
         # Do evaluation for this training round
-        avg_round_reward = evaluate(main_model, env, num_eps=num_eval_eps)
+        avg_round_reward = evaluate(main_model, eval_env, num_eps=num_eval_eps)
         print(f"Average round reward after training: {avg_round_reward}")
 
     # Evaluate the last model against each of its previous iterations
-    _evaluate_against_predecessors(previous_models, env, num_eval_eps)
+    _evaluate_against_predecessors(previous_models, eval_env, num_eval_eps)
 
 
 def _make_model_path(model_name: str, i: int):
