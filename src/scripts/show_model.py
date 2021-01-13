@@ -1,19 +1,28 @@
 import gym
 from stable_baselines3 import DQN, SAC, A2C
 
+from src.agents.random_agent import RandomAgent
+from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
+from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.learning import evaluate
 from src.selfplay.opponent_wrapper import OpponentWrapper
+from ma_gym.wrappers import Monitor
 
 
 def main():
     # Initialize environment
     env = gym.make('PongDuel-v0')
+    env = Monitor(env, './output', video_callable=lambda episode_id: True, force=True)
+    # env = RewardZeroToNegativeBiAgentWrapper(env)
     env = OpponentWrapper(env)
     model_dir = 'output/models/'
-    agent_name = "sac-6.out"
-    model = A2C.load(model_dir + agent_name)
-    env.set_opponent(model)
-    evaluate(model, env, slowness=0.5, num_eps=1, render=True, print_obs=True)
+    agent_name = "dqn-vs-rule-based-250k-1.out"
+    model = DQN.load(model_dir + agent_name)
+    op = RandomAgent(env)
+    # op = SimpleRuleBasedAgent(env)
+    env.set_opponent(op)
+    avg_reward = evaluate(model, env, slowness=0.05, num_eps=1, render=True, print_obs=False, verbose=False)
+    print(avg_reward)
 
 
 if __name__ == '__main__':
