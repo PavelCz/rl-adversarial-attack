@@ -13,7 +13,8 @@ from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.opponent_wrapper import OpponentWrapper
 
 
-def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0):
+
+def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0, model_name='dqn'):
     # Initialize environment
     env = gym.make('PongDuel-v0')
     # env = RewardZeroToNegativeBiAgentWrapper(env)
@@ -25,9 +26,9 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
 
     # Load potentially saved previous models
     for i in range(1, max_agents):
-        path = _make_model_path(i)
+        path = _make_model_path(model_name, i)
         if os.path.isfile(path):
-            model = A2C.load(path)
+            model = DQN.load(path)
             previous_models.append(model)
         else:
             break
@@ -51,9 +52,9 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
         env.set_opponent_right_side(True)
         main_model.learn(total_timesteps=num_learn_steps, tb_log_name="log")
         # Save the further trained model to disk
-        main_model.save(_make_model_path(i + 1))
+        main_model.save(_make_model_path(model_name, i + 1))
         # Make a copy of the just saved model by loading it
-        copy_of_model = A2C.load(_make_model_path(i + 1))
+        copy_of_model = DQN.load(_make_model_path(model_name, i + 1))
         # Save the copy to the list
         previous_models.append(copy_of_model)
         # Do evaluation for this training round
@@ -64,9 +65,9 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
     _evaluate_against_predecessors(previous_models, env, num_eval_eps)
 
 
-def _make_model_path(i):
+def _make_model_path(model_name: str, i: int):
     model_dir = 'output/models/'
-    return model_dir + 'sac-' + str(i) + '.out'
+    return model_dir + model_name + str(i) + '.out'
 
 
 def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, verbose=False):
