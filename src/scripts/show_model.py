@@ -27,4 +27,4 @@ def main(save_video=False, num_eps=1):
 
 
 if __name__ == '__main__':
-    main(100)
+    main(num_eps=100)
