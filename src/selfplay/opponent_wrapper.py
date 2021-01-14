@@ -35,7 +35,7 @@ class OpponentWrapper(gym.Wrapper):
         self.opponent = opponent
         self.opponent_obs = None  # The previous observation that is meant for the opponent
         # Overwrite the variable to make sense for single-agent env
-        self.observation_space = Box(np.array([0, 0, 0, 0]), np.array([1, 1, 1, 1]))
+        self.observation_space = env.observation_space[0]  # Box(np.array([0, 0, 0, 0]), np.array([1, 1, 1, 1]))
         self.action_space = self.action_space[0]
         self.opponent_right_side = True
         self.num_skip_steps = num_skip_steps
@@ -57,7 +57,7 @@ class OpponentWrapper(gym.Wrapper):
         # Save opponent observation for later
         self.opponent_obs = opponent_obs
         # Return the observation that is meant for the main agent
-        return np.array(main_obs[:4])
+        return np.array(main_obs)
 
     def step(self, action):
         """
@@ -67,7 +67,7 @@ class OpponentWrapper(gym.Wrapper):
         # Flip the observation for the opponent, such that from the opponents viewpoint it is also on the left side
         obs_for_opponent = flip_observation_horizontally(self.opponent_obs)
         # Get the action taken by the opponent, based on the observation that is meant for the opponent
-        opponent_action, _states = self.opponent.predict(np.array(obs_for_opponent[:4]), deterministic=False)
+        opponent_action, _states = self.opponent.predict(np.array(obs_for_opponent), deterministic=False)
 
         # action = list(action)
         if isinstance(opponent_action, list) or isinstance(opponent_action, np.ndarray):
@@ -90,11 +90,11 @@ class OpponentWrapper(gym.Wrapper):
 
         # Update the observation that is needed by the opponent in the next step
         self.opponent_obs = opponent_obs
-        #if(main_done is True):
+        # if(main_done is True):
         #    print("=\n=\n=\n")
-        #print(f"\r{(main_obs[:4], main_reward, main_done, info, action)}")
+        # print(f"\r{(main_obs[:4], main_reward, main_done, info, action)}")
         # Return only the vars that are meant for the main agent
-        return np.array(main_obs[:4]), main_reward, main_done, info
+        return np.array(main_obs), main_reward, main_done, info
 
     def set_opponent(self, opponent):
         self.opponent = opponent
