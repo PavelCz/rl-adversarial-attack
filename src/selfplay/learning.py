@@ -13,6 +13,7 @@ from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 
+best_models = []
 
 
 def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0, model_name='dqn'):
@@ -42,9 +43,9 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
     # Initialize first round
     last_agent_id = len(previous_models) - 1
     if last_agent_id == 0:
-        # main_model = A2C('MlpPolicy', policy_kwargs=dict(optimizer_class=RMSpropTFLike, optimizer_kwargs=dict(eps=1e-5)), env=env, verbose=0,
+        #main_model = A2C('MlpPolicy', policy_kwargs=dict(optimizer_class=RMSpropTFLike, optimizer_kwargs=dict(eps=1e-5)), env=train_env, verbose=0,
         #                 tensorboard_log="output/tb-log")
-        # main_model = A2C('MlpPolicy', env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
+        # main_model = A2C('MlpPolicy', train_env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
         main_model = DQN('MlpPolicy', train_env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
     else:
         main_model = copy.deepcopy(previous_models[last_agent_id])
@@ -67,10 +68,11 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
         previous_models.append(copy_of_model)
         # Do evaluation for this training round
         avg_round_reward = evaluate(main_model, eval_env, num_eps=num_eval_eps)
+        print(model_name)
         print(f"Average round reward after training: {avg_round_reward}")
 
     # Evaluate the last model against each of its previous iterations
-    _evaluate_against_predecessors(previous_models, eval_env, num_eval_eps)
+    # _evaluate_against_predecessors(previous_models, eval_env, num_eval_eps)
 
 
 def _make_model_path(model_name: str, i: int):
