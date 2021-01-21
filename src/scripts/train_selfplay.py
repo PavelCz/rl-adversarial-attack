@@ -1,4 +1,4 @@
-from src.selfplay.learning import learn_with_selfplay
+from src.selfplay.naive_selfplay_training import learn_with_selfplay
 
 
 def main():

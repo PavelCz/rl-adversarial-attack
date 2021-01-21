@@ -4,7 +4,7 @@ from stable_baselines3 import DQN, SAC, A2C
 from src.agents.random_agent import RandomAgent
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
-from src.selfplay.learning import evaluate
+from src.selfplay.naive_selfplay_training import evaluate
 from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 from ma_gym.wrappers import Monitor
 
