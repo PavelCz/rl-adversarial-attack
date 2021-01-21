@@ -23,6 +23,8 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
 
     eval_env = gym.make('PongDuel-v0')
     eval_env = OpponentWrapper(eval_env, num_skip_steps=num_skip_steps)
+    eval_op = RandomAgent(eval_env)
+    eval_env.set_opponent(eval_op)
 
     # Initialize first agent
     rand_agent = SimpleRuleBasedAgent(train_env)
