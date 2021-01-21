@@ -11,7 +11,7 @@ from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 from src.agents.random_agent import RandomAgent
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
-from src.selfplay.opponent_wrapper import OpponentWrapper
+from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 
 
 
@@ -19,10 +19,10 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
     # Initialize environment
     train_env = gym.make('PongDuel-v0')
     train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
-    train_env = OpponentWrapper(train_env, num_skip_steps=num_skip_steps)
+    train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps)
 
     eval_env = gym.make('PongDuel-v0')
-    eval_env = OpponentWrapper(eval_env, num_skip_steps=num_skip_steps)
+    eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps)
     eval_op = RandomAgent(eval_env)
     eval_env.set_opponent(eval_op)
 

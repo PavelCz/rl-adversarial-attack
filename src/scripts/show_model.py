@@ -5,7 +5,7 @@ from src.agents.random_agent import RandomAgent
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.learning import evaluate
-from src.selfplay.opponent_wrapper import OpponentWrapper
+from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 from ma_gym.wrappers import Monitor
 
 
@@ -15,16 +15,16 @@ def main(save_video=False, num_eps=1, render=True):
     if save_video:
         env = Monitor(env, './output/recordings', video_callable=lambda episode_id: True, force=True)
     # env = RewardZeroToNegativeBiAgentWrapper(env)
-    env = OpponentWrapper(env)
-    model_dir = '../output/models/'
-    agent_name = "dqn-vs-rule-based-250k-1.out"
+    env = MAGymCompatibilityWrapper(env)
+    model_dir = 'output/models/'
+    agent_name = "dqn-full-obs-1500k-1.out"
     model = DQN.load(model_dir + agent_name)
-    op = RandomAgent(env)
-    # op = SimpleRuleBasedAgent(env)
+    #op = RandomAgent(env)
+    op = SimpleRuleBasedAgent(env)
     env.set_opponent(op)
     avg_reward = evaluate(model, env, slowness=0.05, num_eps=num_eps, render=render, print_obs=False, verbose=False)
     print(avg_reward)
 
 
 if __name__ == '__main__':
-    main(num_eps=100, render=False)
+    main(num_eps=1000, render=False)

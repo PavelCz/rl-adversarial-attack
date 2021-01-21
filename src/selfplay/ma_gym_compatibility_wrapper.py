@@ -18,7 +18,7 @@ def flip_observation_horizontally(obs):
     return reversed_obs
 
 
-class OpponentWrapper(gym.Wrapper):
+class MAGymCompatibilityWrapper(gym.Wrapper):
     """
     This wrapper allows multi-agent environment to be used with agents that expect normal gym-environments. It allows to
     set the opponent agent to a separate agent. This opponent will not learn, instead it will simply be evaluated to
@@ -31,7 +31,7 @@ class OpponentWrapper(gym.Wrapper):
     """
 
     def __init__(self, env: gym.Env, opponent=None, num_skip_steps=0):
-        super(OpponentWrapper, self).__init__(env)
+        super(MAGymCompatibilityWrapper, self).__init__(env)
         self.opponent = opponent
         self.opponent_obs = None  # The previous observation that is meant for the opponent
         # Overwrite the variable to make sense for single-agent env

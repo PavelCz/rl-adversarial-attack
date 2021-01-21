@@ -10,7 +10,6 @@ from stable_baselines3.a2c import MlpPolicy
 
 from src.agents.random_agent import RandomAgent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
-from src.selfplay.opponent_wrapper import OpponentWrapper
 
 
 def learn(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0):
