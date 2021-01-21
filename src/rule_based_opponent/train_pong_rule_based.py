@@ -27,10 +27,10 @@ def learn(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0):
     done = False
     while not done:
         action, _states = main_model.predict(obs, deterministic=False)
-        print(action)
         ob, reward, done, info = env.step(action)
         env.render()
         rewards.append(reward)
+        print(reward)
     print(f"{sum(rewards) / len(rewards)}")
 
 

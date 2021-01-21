@@ -139,4 +139,8 @@ cython_debug/
 src/output
 
 .idea/
+/src/scripts/output/
+/src/rule_based_opponent/output/
+
+*openai
 /output/
