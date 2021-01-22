@@ -59,7 +59,7 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
         print(f"Running training round {i + 1}")
         # Take opponent from the previous version of the model
         train_env.set_opponent(previous_models[i])
-        eval_env.set_opponent(previous_models[i])
+        # eval_env.set_opponent(previous_models[i])
         train_env.set_opponent_right_side(True)
         main_model.learn(total_timesteps=num_learn_steps, tb_log_name="log")  # , callback=learn_callback)
         # Save the further trained model to disk
