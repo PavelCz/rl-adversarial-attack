@@ -6,6 +6,7 @@ import gym
 import ma_gym  # Necessary so the PongDuel env exists
 import numpy as np
 from stable_baselines3 import PPO, DQN, A2C
+from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 
 from src.agents.random_agent import RandomAgent
@@ -21,6 +22,7 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
     train_env = gym.make('PongDuel-v0')
     train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
     train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps)
+    train_env = Monitor(train_env)
 
     eval_env = gym.make('PongDuel-v0')
     eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps)
