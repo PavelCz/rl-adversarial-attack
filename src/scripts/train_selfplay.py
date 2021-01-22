@@ -7,6 +7,7 @@ def main():
     num_skip_steps_list = [0]
     model_type = 'dqn'
     num_learn_steps_list = [750_000]
+    only_rule_based_opponent = True  # True forces play against rule_based, i.e. no self-play
 
     for num_learn_steps in num_learn_steps_list:
         for num_skip_steps in num_skip_steps_list:
@@ -17,7 +18,8 @@ def main():
                                 num_learn_steps=num_learn_steps,
                                 num_eval_eps=num_eval_eps,
                                 num_skip_steps=num_skip_steps,
-                                model_name=model_name)
+                                model_name=model_name,
+                                only_rule_based_op=only_rule_based_opponent)
 
 
 if __name__ == '__main__':

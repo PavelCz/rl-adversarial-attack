@@ -17,7 +17,7 @@ from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 best_models = []
 
 
-def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0, model_name='dqn'):
+def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0, model_name='dqn', only_rule_based_op=False):
     # Initialize environment
     train_env = gym.make('PongDuel-v0')
     train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
@@ -57,8 +57,15 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
     # Start training with self-play over several rounds
     for i in range(last_agent_id, max_agents - 1):
         print(f"Running training round {i + 1}")
-        # Take opponent from the previous version of the model
-        train_env.set_opponent(previous_models[i])
+
+        # Choose opponent based on setting
+        if only_rule_based_op:
+            # Use rule-based as opponent
+            train_env.set_opponent(SimpleRuleBasedAgent(train_env))
+        else:
+            # Take opponent from the previous version of the model
+            train_env.set_opponent(previous_models[i])
+
         # eval_env.set_opponent(previous_models[i])
         train_env.set_opponent_right_side(True)
         main_model.learn(total_timesteps=num_learn_steps, tb_log_name="log")  # , callback=learn_callback)
@@ -74,7 +81,7 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
         print(f"Average round reward after training: {avg_round_reward}")
 
     # Evaluate the last model against each of its previous iterations
-    # _evaluate_against_predecessors(previous_models, eval_env, num_eval_eps)
+    _evaluate_against_predecessors(previous_models, eval_env, num_eval_eps)
 
 
 def _make_model_path(model_name: str, i: int):
