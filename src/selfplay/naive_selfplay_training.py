@@ -66,16 +66,18 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
             # Take opponent from the previous version of the model
             train_env.set_opponent(previous_models[i])
 
-        # eval_env.set_opponent(previous_models[i])
+        # Train the model
         train_env.set_opponent_right_side(True)
-        main_model.learn(total_timesteps=num_learn_steps, tb_log_name="log")  # , callback=learn_callback)
+        main_model.learn(total_timesteps=num_learn_steps, tb_log_name=model_name)  # , callback=learn_callback)
         # Save the further trained model to disk
         main_model.save(_make_model_path(model_name, i + 1))
         # Make a copy of the just saved model by loading it
         copy_of_model = DQN.load(_make_model_path(model_name, i + 1))
         # Save the copy to the list
         previous_models.append(copy_of_model)
+
         # Do evaluation for this training round
+        eval_env.set_opponent(eval_op)
         avg_round_reward = evaluate(main_model, eval_env, num_eps=num_eval_eps)
         print(model_name)
         print(f"Average round reward after training: {avg_round_reward}")
