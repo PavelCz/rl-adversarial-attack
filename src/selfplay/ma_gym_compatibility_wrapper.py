@@ -9,8 +9,11 @@ def flip_observation_horizontally(obs):
     agent_pos, ball_pos, ball_dir = obs[:2], obs[2:4], obs[4:]
 
     # Perform the flipping
-    agent_pos[1] = 1 - agent_pos[1]
-    ball_pos[1] = 1 - ball_pos[1]
+    # The range is [0,1]. However, due to the way the observations are calculated, a position all the way to the left will be 0/30
+    # and a position all the way to the right 29/30. Therefore, doing 1 - position is not enough, instead we have to offset by 1/30 in order
+    # for everything to be exactly mirrored
+    agent_pos[1] = 1 - agent_pos[1] - 1 / 30
+    ball_pos[1] = 1 - ball_pos[1] - 1 / 30
     ball_dir.reverse()
 
     # Merge into single obs list
