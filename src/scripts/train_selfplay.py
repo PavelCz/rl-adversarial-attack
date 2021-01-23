@@ -22,6 +22,7 @@ def main():
                 print(f'Running training for model {model_name}')
                 learn_with_selfplay(max_agents=max_agents,
                                     num_learn_steps=num_learn_steps,
+                                    num_learn_steps_pre_training=1_500_000,
                                     num_eval_eps=num_eval_eps,
                                     num_skip_steps=num_skip_steps,
                                     model_name=model_name,

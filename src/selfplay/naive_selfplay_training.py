@@ -17,7 +17,13 @@ from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 best_models = []
 
 
-def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_steps=0, model_name='dqn', only_rule_based_op=False):
+def learn_with_selfplay(max_agents,
+                        num_learn_steps,
+                        num_learn_steps_pre_training,
+                        num_eval_eps,
+                        num_skip_steps=0,
+                        model_name='dqn',
+                        only_rule_based_op=False):
     # Initialize environment
     train_env = gym.make('PongDuel-v0')
     train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
@@ -68,7 +74,9 @@ def learn_with_selfplay(max_agents, num_learn_steps, num_eval_eps, num_skip_step
 
         # Train the model
         train_env.set_opponent_right_side(True)
-        main_model.learn(total_timesteps=num_learn_steps, tb_log_name=model_name)  # , callback=learn_callback)
+
+        chosen_n_steps = num_learn_steps_pre_training if i == 0 else num_learn_steps
+        main_model.learn(total_timesteps=chosen_n_steps, tb_log_name=model_name)  # , callback=learn_callback)
         # Save the further trained model to disk
         main_model.save(_make_model_path(model_name, i + 1))
         # Make a copy of the just saved model by loading it
