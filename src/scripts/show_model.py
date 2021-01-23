@@ -22,7 +22,7 @@ def main(save_video=False, num_eps=1, render=True):
     #op = RandomAgent(env)
     op = SimpleRuleBasedAgent(env)
     env.set_opponent(op)
-    avg_reward = evaluate(model, env, slowness=0.05, num_eps=num_eps, render=render, print_obs=False, verbose=False)
+    avg_reward, _ = evaluate(model, env, slowness=0.05, num_eps=num_eps, render=render, print_obs=False, verbose=False)
     print(avg_reward)
 
 

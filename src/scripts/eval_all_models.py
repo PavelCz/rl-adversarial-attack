@@ -23,7 +23,7 @@ def main(num_eps=1, render=True):
         print(f'Evaluating model {model_name}{i}')
         model = DQN.load(model_dir + model_name + str(i) + '.out')
         model.set_env(env)
-        avg_reward = evaluate(model, env, slowness=0.05, num_eps=num_eps, render=render, print_obs=False, verbose=False)
+        avg_reward, _ = evaluate(model, env, slowness=0.05, num_eps=num_eps, render=render, print_obs=False, verbose=False)
         print(avg_reward)
 
 

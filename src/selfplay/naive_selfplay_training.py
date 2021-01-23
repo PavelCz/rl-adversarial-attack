@@ -86,7 +86,7 @@ def learn_with_selfplay(max_agents,
 
         # Do evaluation for this training round
         eval_env.set_opponent(eval_op)
-        avg_round_reward = evaluate(main_model, eval_env, num_eps=num_eval_eps)
+        avg_round_reward, num_steps = evaluate(main_model, eval_env, num_eps=num_eval_eps)
         print(model_name)
         print(f"Average round reward after training: {avg_round_reward}")
 
@@ -103,6 +103,7 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, v
     env.set_opponent_right_side(True)
     total_reward = 0
     total_rounds = 0
+    total_steps = 0
     for episode in range(num_eps):
         ep_reward = 0
         # Evaluate the agent
@@ -114,6 +115,8 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, v
             if verbose:
                 print(action)
             obs, reward, done, info = env.step(action)
+            total_steps += 1
+
             # print(reward)
             ep_reward += reward
             if render:
@@ -126,7 +129,7 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, v
     env.close()
 
     avg_round_reward = total_reward / total_rounds
-    return avg_round_reward
+    return avg_round_reward, total_steps
 
 
 def _evaluate_against_predecessors(previous_models, env, num_eval_eps):
@@ -134,5 +137,6 @@ def _evaluate_against_predecessors(previous_models, env, num_eval_eps):
     last_model_index = len(previous_models) - 1
     for i, model in enumerate(previous_models):
         env.set_opponent(model)
-        avg_round_reward = evaluate(last_model, env, num_eps=num_eval_eps)
+        avg_round_reward, num_steps = evaluate(last_model, env, num_eps=num_eval_eps)
         print(f"Model {last_model_index} against {i}: {avg_round_reward}")
+        print(f"Average number of steps: {num_steps / num_eval_eps}")
