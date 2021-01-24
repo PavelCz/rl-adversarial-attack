@@ -23,7 +23,8 @@ def learn_with_selfplay(max_agents,
                         num_eval_eps,
                         num_skip_steps=0,
                         model_name='dqn',
-                        only_rule_based_op=False):
+                        only_rule_based_op=False,
+                        patience=5):
     # Initialize environment
     train_env = gym.make('PongDuel-v0')
     train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
@@ -32,16 +33,16 @@ def learn_with_selfplay(max_agents,
 
     eval_env = gym.make('PongDuel-v0')
     eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps)
-    eval_op = RandomAgent(eval_env)
+    eval_op = SimpleRuleBasedAgent(eval_env)
     eval_env.set_opponent(eval_op)
 
     # Initialize first agent
-    rand_agent = SimpleRuleBasedAgent(train_env)
-    previous_models = [rand_agent]
+    pre_train_agent = SimpleRuleBasedAgent(train_env)
+    previous_models = [pre_train_agent]
 
     # Load potentially saved previous models
-    for i in range(1, max_agents):
-        path = _make_model_path(model_name, i)
+    for opponent_id in range(1, max_agents):
+        path = _make_model_path(model_name, opponent_id)
         if os.path.isfile(path):
             model = DQN.load(path)
             previous_models.append(model)
@@ -50,8 +51,10 @@ def learn_with_selfplay(max_agents,
 
     # Initialize first round
     last_agent_id = len(previous_models) - 1
+    prev_num_steps = 0
+    patience_counter = 0
     if last_agent_id == 0:
-        #main_model = A2C('MlpPolicy', policy_kwargs=dict(optimizer_class=RMSpropTFLike, optimizer_kwargs=dict(eps=1e-5)), env=train_env, verbose=0,
+        # main_model = A2C('MlpPolicy', policy_kwargs=dict(optimizer_class=RMSpropTFLike, optimizer_kwargs=dict(eps=1e-5)), env=train_env, verbose=0,
         #                 tensorboard_log="output/tb-log")
         # main_model = A2C('MlpPolicy', train_env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
         main_model = DQN('MlpPolicy', train_env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
@@ -61,8 +64,9 @@ def learn_with_selfplay(max_agents,
         main_model.tensorboard_log = "output/tb-log"
 
     # Start training with self-play over several rounds
-    for i in range(last_agent_id, max_agents - 1):
-        print(f"Running training round {i + 1}")
+    opponent_id = last_agent_id
+    while opponent_id < max_agents - 1:
+        print(f"Running training round {opponent_id + 1}")
 
         # Choose opponent based on setting
         if only_rule_based_op:
@@ -70,25 +74,48 @@ def learn_with_selfplay(max_agents,
             train_env.set_opponent(SimpleRuleBasedAgent(train_env))
         else:
             # Take opponent from the previous version of the model
-            train_env.set_opponent(previous_models[i])
+            train_env.set_opponent(previous_models[opponent_id])
 
         # Train the model
         train_env.set_opponent_right_side(True)
 
-        chosen_n_steps = num_learn_steps_pre_training if i == 0 else num_learn_steps
+        chosen_n_steps = num_learn_steps_pre_training if opponent_id == 0 else num_learn_steps  # Iteration 0 is pre-training
         main_model.learn(total_timesteps=chosen_n_steps, tb_log_name=model_name)  # , callback=learn_callback)
-        # Save the further trained model to disk
-        main_model.save(_make_model_path(model_name, i + 1))
-        # Make a copy of the just saved model by loading it
-        copy_of_model = DQN.load(_make_model_path(model_name, i + 1))
-        # Save the copy to the list
-        previous_models.append(copy_of_model)
 
         # Do evaluation for this training round
         eval_env.set_opponent(eval_op)
         avg_round_reward, num_steps = evaluate(main_model, eval_env, num_eps=num_eval_eps)
         print(model_name)
         print(f"Average round reward after training: {avg_round_reward}")
+        print(f"Average number of steps per episode: {num_steps / num_eval_eps}")
+
+        # Check if there was improvement
+        if num_steps > prev_num_steps:  # Model improved compared to last
+            print('Model improved')
+            prev_num_steps = num_steps
+            # Reset patience counter
+            patience_counter = 0
+
+            # Save the further trained model to disk
+            main_model.save(_make_model_path(model_name, opponent_id + 1))
+            # Make a copy of the just saved model by loading it
+            copy_of_model = DQN.load(_make_model_path(model_name, opponent_id + 1))
+            # Save the copy to the list
+            previous_models.append(copy_of_model)
+
+            # From here we continue training the same main_model against itself
+            opponent_id += 1
+        else:
+            print('Model did not improve')
+            patience_counter += 1
+            # Do not save the model
+            if patience_counter > patience:
+                print('Stopping early due to patience')
+                break
+            # Because our model did not improve compared to the previous one, we reset our main_model to the previous one
+            main_model = DQN.load(_make_model_path(model_name, opponent_id))
+
+            # Opponent does not change
 
     # Evaluate the last model against each of its previous iterations
     _evaluate_against_predecessors(previous_models, eval_env, num_eval_eps)
