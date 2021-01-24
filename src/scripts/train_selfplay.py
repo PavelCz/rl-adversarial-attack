@@ -7,8 +7,8 @@ def main():
     num_eval_eps = 100
     num_skip_steps_list = [0]
     model_type = 'dqn'
-    num_learn_steps_list = [500_000]
-    only_rule_based_opponent_list = [True, False]  # True forces play against rule_based, i.e. no self-play
+    num_learn_steps_list = [1_000_000]
+    only_rule_based_opponent_list = [False]  # True forces play against rule_based, i.e. no self-play
 
     for only_rule_based_opponent in only_rule_based_opponent_list:
         if not only_rule_based_opponent:
@@ -26,7 +26,8 @@ def main():
                                     num_eval_eps=num_eval_eps,
                                     num_skip_steps=num_skip_steps,
                                     model_name=model_name,
-                                    only_rule_based_op=only_rule_based_opponent)
+                                    only_rule_based_op=only_rule_based_opponent,
+                                    patience=10)
 
 
 if __name__ == '__main__':

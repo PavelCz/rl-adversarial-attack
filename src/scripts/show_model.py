@@ -17,14 +17,15 @@ def main(save_video=False, num_eps=1, render=True):
     # env = RewardZeroToNegativeBiAgentWrapper(env)
     env = MAGymCompatibilityWrapper(env)
     model_dir = 'output/models/'
-    agent_name = "dqn-full-obs-1500k-1.out"
+    agent_name = "dqn-500k39.out"
     model = DQN.load(model_dir + agent_name)
     #op = RandomAgent(env)
-    op = SimpleRuleBasedAgent(env)
+    # op = SimpleRuleBasedAgent(env)
+    op = DQN.load(model_dir + agent_name)
     env.set_opponent(op)
     avg_reward, _ = evaluate(model, env, slowness=0.05, num_eps=num_eps, render=render, print_obs=False, verbose=False)
     print(avg_reward)
 
 
 if __name__ == '__main__':
-    main(num_eps=1000, render=False)
+    main(num_eps=100, render=False)
