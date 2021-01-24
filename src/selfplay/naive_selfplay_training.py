@@ -114,6 +114,7 @@ def learn_with_selfplay(max_agents,
                 break
             # Because our model did not improve compared to the previous one, we reset our main_model to the previous one
             main_model = DQN.load(_make_model_path(model_name, opponent_id))
+            main_model.set_env(train_env)
 
             # Opponent does not change
 
