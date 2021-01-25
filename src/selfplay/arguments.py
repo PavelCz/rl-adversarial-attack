@@ -37,7 +37,7 @@ def get_args():
                         help='Agent takes actions at every k frames')
 
     # Environment Arguments
-    parser.add_argument('--env', type=str, default='LaserTag-small2-v0',
+    parser.add_argument('--env', type=str, default='None',
                         help='Environment Name')
     parser.add_argument('--negative', action='store_true', default=False,
                         help='Give negative(-1) reward for not done.')
@@ -56,8 +56,12 @@ def get_args():
                         help='Record agent playing')
     parser.add_argument('--evaluation-interval', type=int, default=10000,
                         help='Frames for evaluation interval')
+
+    # Adversarial Attacks
     parser.add_argument('--fgsm', type=int, default=None,
                         help='Select an agent to attack with Fast Gradient Sign Method(FGSM)')
+    parser.add_argument('--plot_fgsm', action='store_true',
+                        help='Visualize perturbbed state')
 
     # Optimization Arguments
     parser.add_argument('--lr', type=float, default=1e-4,
@@ -68,7 +72,7 @@ def get_args():
                         help='Start value of epsilon')
     parser.add_argument('--eps-final', type=float, default=0.01,
                         help='Final value of epsilon')
-    parser.add_argument('--eps-decay', type=int, default=300000,
+    parser.add_argument('--eps-decay', type=int, default=30000,
                         help='Adjustment parameter for epsilon')
 
     args = parser.parse_args()
