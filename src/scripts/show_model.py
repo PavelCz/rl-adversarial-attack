@@ -18,10 +18,12 @@ def main(save_video=False, num_eps=1, render=True):
     env = MAGymCompatibilityWrapper(env)
     model_dir = 'output/models/'
     agent_name = "dqn-500k39.out"
+    op_name = agent_name
+
     model = DQN.load(model_dir + agent_name)
-    #op = RandomAgent(env)
+    # op = RandomAgent(env)
     # op = SimpleRuleBasedAgent(env)
-    op = DQN.load(model_dir + agent_name)
+    op = DQN.load(model_dir + op_name)
     env.set_opponent(op)
     avg_reward, _ = evaluate(model, env, slowness=0.05, num_eps=num_eps, render=render, print_obs=False, verbose=False)
     print(avg_reward)
