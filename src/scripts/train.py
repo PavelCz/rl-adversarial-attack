@@ -116,19 +116,17 @@ def train(env, args, writer):
         ball_dir = np.argmax(p1_state[-6:])
         ball_dir_next = np.argmax(p1_next_state[-6:])
 
-
-        # Try to modify a binary reward +1 for scoring and -1 for missing the ball => zero-sum game
-        p1_reward = 0
-        p2_reward = 0
+        p1_reward = reward[0]
+        p2_reward = reward[1]
         if np.any(reward):
             episode_length_list.append(tag_interval_length)
             tag_interval_length = 0
-            if reward[0] == 1:
-                p1_reward = +1
-                p2_reward = -1
-            elif reward[1] == 1:
-                p1_reward = -1
-                p2_reward = +1
+            # if reward[0] == 1:
+            #     p1_reward = +1
+            #     p2_reward = -1
+            # elif reward[1] == 1:
+            #     p1_reward = -1
+            #     p2_reward = +1
 
         p1_reward_deque.append(p1_reward)
         p2_reward_deque.append(p2_reward)
@@ -207,7 +205,6 @@ def train(env, args, writer):
 
         # Logging and Saving models
         if frame_idx % args.evaluation_interval == 0:
-            print(p1_reward_list)
             print_log(frame_idx, prev_frame, prev_time, (p1_reward_list, p2_reward_list), length_list,
                       (p1_rl_loss_list, p2_rl_loss_list), (p1_sl_loss_list, p2_sl_loss_list))
             p1_reward_list.clear(), p2_reward_list.clear(), length_list.clear()
@@ -233,7 +230,7 @@ def train(env, args, writer):
 def compute_sl_loss(policy, reservoir_buffer, optimizer, args):
     state, action = reservoir_buffer.sample(args.batch_size)
 
-    state = torch.tensor(state).to(args.device)
+    state = torch.tensor(np.float32(state)).to(args.device)
     action = torch.LongTensor(action).to(args.device)
 
     loss = best_response_loss(state, action, policy)
@@ -251,14 +248,13 @@ def best_response_loss(state, action, model):
 
 def compute_rl_loss(current_model, target_model, replay_buffer, optimizer, args):
     state, action, reward, next_state, done = replay_buffer.sample(args.batch_size)
-    weights = torch.ones(args.batch_size)
+    weights = torch.ones(args.batch_size).to(args.device)
 
-    state = torch.tensor(state).to(args.device)
-    next_state = torch.tensor(next_state).to(args.device)
+    state = torch.tensor(np.float32(state)).to(args.device)
+    next_state = torch.tensor(np.float32(next_state)).to(args.device)
     action = torch.LongTensor(action).to(args.device)
     reward = torch.tensor(reward).to(args.device)
     done = torch.tensor(done).to(args.device)
-    weights = torch.tensor(weights).to(args.device)
 
     # Q-Learning with target network
     q_values = current_model(state)

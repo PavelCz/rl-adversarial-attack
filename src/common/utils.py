@@ -78,7 +78,7 @@ def save_model(models, policies, args):
 def load_model(models, policies, args):
     fname = name_file(args)
     fname = os.path.join("models", fname)
-
+    print(fname)
     if args.device == torch.device("cpu"):
         # Models save on GPU load on CPU
         map_location = lambda storage, loc: storage
@@ -148,3 +148,22 @@ def set_global_seeds(seed):
 
     np.random.seed(seed)
     random.seed(seed)
+
+def load_model_tmp(models, policies, args):
+    fname = name_file(args)
+    fname = "tmp" + fname
+    fname = os.path.join("models", fname)
+    print(fname)
+    if args.device == torch.device("cpu"):
+        # Models save on GPU load on CPU
+        map_location = lambda storage, loc: storage
+    else:
+        # Models save on GPU load on GPU
+        map_location = None
+    
+    if not os.path.exists(fname):
+        raise ValueError("No model saved with name {}".format(fname))
+
+    checkpoint = torch.load(fname, map_location)
+    models['p1'].load_state_dict(checkpoint['p1_model'])
+    policies['p1'].load_state_dict(checkpoint['p1_policy'])

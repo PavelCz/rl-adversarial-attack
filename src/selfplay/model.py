@@ -52,7 +52,8 @@ class DQNFC(nn.Module):
         state       torch.Tensor with appropritate device type
         epsilon     epsilon for epsilon-greedy
         """
-        if random.random() > epsilon:  # NoisyNet does not use e-greedy
+        if random.random() > epsilon:
+            # e-greedy
             with torch.no_grad():
                 state   = state.unsqueeze(0)
                 q_value = self.forward(state)
