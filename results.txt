@@ -1,0 +1,681 @@
+/home/pavelc/home-hdd/anaconda3/envs/adlr/bin/python /home/pavelc/_code/sem2/adlr/tum-adlr-ws20-03/src/scripts/train_selfplay.py
+Running training for model dqn-500k
+/home/pavelc/home-hdd/anaconda3/envs/adlr/lib/python3.9/site-packages/gym/logger.py:30: UserWarning: WARN: Box bound precision lowered by casting to float32
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+Running training round 4
+dqn-500k
+Average round reward after training: 0.818
+Running training round 5
+dqn-500k
+Average round reward after training: 0.815
+Running training round 6
+dqn-500k
+Average round reward after training: 0.821
+Running training round 7
+dqn-500k
+Average round reward after training: 0.823
+Running training round 8
+dqn-500k
+Average round reward after training: 0.824
+Running training round 9
+dqn-500k
+Average round reward after training: 0.831
+Running training round 10
+dqn-500k
+Average round reward after training: 0.825
+Running training round 11
+dqn-500k
+Average round reward after training: 0.754
+Running training round 12
+dqn-500k
+Average round reward after training: 0.815
+Running training round 13
+dqn-500k
+Average round reward after training: 0.842
+Running training round 14
+dqn-500k
+Average round reward after training: 0.863
+Running training round 15
+dqn-500k
+Average round reward after training: 0.822
+Running training round 16
+dqn-500k
+Average round reward after training: 0.846
+Running training round 17
+dqn-500k
+Average round reward after training: 0.817
+Running training round 18
+dqn-500k
+Average round reward after training: 0.841
+Running training round 19
+dqn-500k
+Average round reward after training: 0.776
+Model 19 against 0: 0.224
+Model 19 against 1: 0.556
+Model 19 against 2: 0.624
+Model 19 against 3: 0.568
+Model 19 against 4: 0.378
+Model 19 against 5: 0.477
+Model 19 against 6: 0.455
+Model 19 against 7: 0.592
+Model 19 against 8: 0.334
+Model 19 against 9: 0.344
+Model 19 against 10: 0.407
+Model 19 against 11: 0.567
+Model 19 against 12: 0.313
+Model 19 against 13: 0.406
+Model 19 against 14: 0.552
+Model 19 against 15: 0.62
+Model 19 against 16: 0.426
+Model 19 against 17: 0.469
+Model 19 against 18: 0.461
+Model 19 against 19: 0.678
+Running training for model dqn-500k
+Running training round 20
+dqn-500k
+Average round reward after training: 0.788
+Running training round 21
+dqn-500k
+Average round reward after training: 0.722
+Running training round 22
+dqn-500k
+Average round reward after training: 0.815
+Running training round 23
+dqn-500k
+Average round reward after training: 0.772
+Running training round 24
+dqn-500k
+Average round reward after training: 0.761
+Running training round 25
+dqn-500k
+Average round reward after training: 0.844
+Running training round 26
+dqn-500k
+Average round reward after training: 0.789
+Running training round 27
+dqn-500k
+Average round reward after training: 0.823
+Running training round 28
+dqn-500k
+Average round reward after training: 0.806
+Running training round 29
+dqn-500k
+Average round reward after training: 0.844
+Running training round 30
+dqn-500k
+Average round reward after training: 0.757
+Running training round 31
+dqn-500k
+Average round reward after training: 0.839
+Running training round 32
+dqn-500k
+Average round reward after training: 0.814
+Running training round 33
+dqn-500k
+Average round reward after training: 0.803
+Running training round 34
+dqn-500k
+Average round reward after training: 0.808
+Running training round 35
+dqn-500k
+Average round reward after training: 0.781
+Running training round 36
+dqn-500k
+Average round reward after training: 0.804
+Running training round 37
+dqn-500k
+Average round reward after training: 0.799
+Running training round 38
+dqn-500k
+Average round reward after training: 0.813
+Running training round 39
+dqn-500k
+Average round reward after training: 0.805
+Model 39 against 0: 0.243
+Model 39 against 1: 0.702
+Model 39 against 2: 0.704
+Model 39 against 3: 0.697
+Model 39 against 4: 0.429
+Model 39 against 5: 0.631
+Model 39 against 6: 0.354
+Model 39 against 7: 0.658
+Model 39 against 8: 0.471
+Model 39 against 9: 0.372
+Model 39 against 10: 0.507
+Model 39 against 11: 0.701
+
+
+#################################################
+Evaluation against old versions
+
+/home/pavelc/home-hdd/anaconda3/envs/adlr/bin/python /home/pavelc/_code/sem2/adlr/tum-adlr-ws20-03/src/scripts/train_selfplay.py
+Running training for model dqn-500k
+/home/pavelc/home-hdd/anaconda3/envs/adlr/lib/python3.9/site-packages/gym/logger.py:30: UserWarning: WARN: Box bound precision lowered by casting to float32
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+Model 39 against 0: 0.242
+Model 39 against 1: 0.69
+Model 39 against 2: 0.698
+Model 39 against 3: 0.742
+Model 39 against 4: 0.448
+Model 39 against 5: 0.616
+Model 39 against 6: 0.369
+Model 39 against 7: 0.7
+Model 39 against 8: 0.425
+Model 39 against 9: 0.397
+Model 39 against 10: 0.506
+Model 39 against 11: 0.676
+Model 39 against 12: 0.347
+Model 39 against 13: 0.37
+Model 39 against 14: 0.537
+Model 39 against 15: 0.703
+Model 39 against 16: 0.445
+Model 39 against 17: 0.5
+Model 39 against 18: 0.498
+Model 39 against 19: 0.704
+Model 39 against 20: 0.645
+Model 39 against 21: 0.595
+Model 39 against 22: 0.676
+Model 39 against 23: 0.623
+Model 39 against 24: 0.535
+Model 39 against 25: 0.528
+Model 39 against 26: 0.443
+Model 39 against 27: 0.51
+Model 39 against 28: 0.419
+Model 39 against 29: 0.613
+Model 39 against 30: 0.713
+Model 39 against 31: 0.706
+Model 39 against 32: 0.646
+Model 39 against 33: 0.694
+Model 39 against 34: 0.665
+Model 39 against 35: 0.597
+Model 39 against 36: 0.75
+Model 39 against 37: 0.728
+Model 39 against 38: 0.758
+Model 39 against 39: 0.742
+
+Process finished with exit code 0
+
+
+#################################################
+Eval all against random
+
+/home/pavelc/home-hdd/anaconda3/envs/adlr/bin/python /home/pavelc/_code/sem2/adlr/tum-adlr-ws20-03/src/scripts/eval_all_models.py
+/home/pavelc/home-hdd/anaconda3/envs/adlr/lib/python3.9/site-packages/gym/logger.py:30: UserWarning: WARN: Box bound precision lowered by casting to float32
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+Evaluating model dqn-500k1
+0.7566
+Evaluating model dqn-500k2
+0.8121
+Evaluating model dqn-500k3
+0.7691
+Evaluating model dqn-500k4
+0.8261
+Evaluating model dqn-500k5
+0.8137
+Evaluating model dqn-500k6
+0.8173
+Evaluating model dqn-500k7
+0.8299
+Evaluating model dqn-500k8
+0.8361
+Evaluating model dqn-500k9
+0.8261
+Evaluating model dqn-500k10
+0.8446
+Evaluating model dqn-500k11
+0.7618
+Evaluating model dqn-500k12
+0.8396
+Evaluating model dqn-500k13
+0.8387
+Evaluating model dqn-500k14
+0.8501
+Evaluating model dqn-500k15
+0.8109
+Evaluating model dqn-500k16
+0.8304
+Evaluating model dqn-500k17
+0.824
+Evaluating model dqn-500k18
+0.8453
+Evaluating model dqn-500k19
+0.7935
+Evaluating model dqn-500k20
+0.7873
+Evaluating model dqn-500k21
+0.7417
+Evaluating model dqn-500k22
+0.8327
+Evaluating model dqn-500k23
+0.7816
+Evaluating model dqn-500k24
+0.7682
+Evaluating model dqn-500k25
+0.8386
+Evaluating model dqn-500k26
+0.7956
+Evaluating model dqn-500k27
+0.8272
+Evaluating model dqn-500k28
+0.8072
+Evaluating model dqn-500k29
+0.8317
+Evaluating model dqn-500k30
+0.7752
+Evaluating model dqn-500k31
+0.821
+Evaluating model dqn-500k32
+0.8072
+Evaluating model dqn-500k33
+0.815
+Evaluating model dqn-500k34
+0.8052
+Evaluating model dqn-500k35
+0.7642
+Evaluating model dqn-500k36
+0.7972
+Evaluating model dqn-500k37
+0.8137
+Evaluating model dqn-500k38
+0.8135
+Evaluating model dqn-500k39
+0.8071
+
+Process finished with exit code 0
+
+
+
+
+#################
+# New self training
+/home/pavelc/home-hdd/anaconda3/envs/adlr/bin/python /home/pavelc/_code/sem2/adlr/tum-adlr-ws20-03/src/scripts/train_selfplay.py
+Running training for model dqn-1000k
+/home/pavelc/home-hdd/anaconda3/envs/adlr/lib/python3.9/site-packages/gym/logger.py:30: UserWarning: WARN: Box bound precision lowered by casting to float32
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+Running training round 3
+dqn-1000k
+Average round reward after training: 0.346
+Average number of steps per episode: 15170.38
+Model improved
+Running training round 4
+dqn-1000k
+Average round reward after training: 0.234
+Average number of steps per episode: 3236.05
+Model did not improve
+Running training round 4
+dqn-1000k
+Average round reward after training: 0.23
+Average number of steps per episode: 14756.02
+Model did not improve
+Running training round 4
+dqn-1000k
+Average round reward after training: 0.212
+Average number of steps per episode: 5466.49
+Model did not improve
+Running training round 4
+dqn-1000k
+Average round reward after training: 0.29
+Average number of steps per episode: 5937.66
+Model did not improve
+Running training round 4
+dqn-1000k
+Average round reward after training: 0.229
+Average number of steps per episode: 2982.29
+Model did not improve
+Running training round 4
+dqn-1000k
+Average round reward after training: 0.231
+Average number of steps per episode: 7072.61
+Model did not improve
+Running training round 4
+dqn-1000k
+Average round reward after training: 0.332
+Average number of steps per episode: 18881.21
+Model improved
+Running training round 5
+dqn-1000k
+Average round reward after training: 0.364
+Average number of steps per episode: 18055.69
+Model did not improve
+Running training round 5
+dqn-1000k
+Average round reward after training: 0.32
+Average number of steps per episode: 10003.6
+Model did not improve
+Running training round 5
+dqn-1000k
+Average round reward after training: 0.245
+Average number of steps per episode: 8119.17
+Model did not improve
+Running training round 5
+dqn-1000k
+Average round reward after training: 0.242
+Average number of steps per episode: 16651.09
+Model did not improve
+Running training round 5
+dqn-1000k
+Average round reward after training: 0.298
+Average number of steps per episode: 13274.37
+Model did not improve
+Running training round 5
+dqn-1000k
+Average round reward after training: 0.3
+Average number of steps per episode: 25118.47
+Model improved
+Running training round 6
+dqn-1000k
+Average round reward after training: 0.251
+Average number of steps per episode: 3749.82
+Model did not improve
+Running training round 6
+dqn-1000k
+Average round reward after training: 0.245
+Average number of steps per episode: 8312.51
+Model did not improve
+Running training round 6
+dqn-1000k
+Average round reward after training: 0.286
+Average number of steps per episode: 31649.43
+Model improved
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.323
+Average number of steps per episode: 16311.03
+Model did not improve
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.355
+Average number of steps per episode: 14350.17
+Model did not improve
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.284
+Average number of steps per episode: 10454.53
+Model did not improve
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.476
+Average number of steps per episode: 13040.28
+Model did not improve
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.274
+Average number of steps per episode: 4657.42
+Model did not improve
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.22
+Average number of steps per episode: 1230.58
+Model did not improve
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.226
+Average number of steps per episode: 2646.86
+Model did not improve
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.502
+Average number of steps per episode: 22498.21
+Model did not improve
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.275
+Average number of steps per episode: 8084.15
+Model did not improve
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.261
+Average number of steps per episode: 5740.6
+Model did not improve
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.358
+Average number of steps per episode: 19962.48
+Model did not improve
+Stopping early due to patience
+Model 6 against 0: 0.315
+Average number of steps: 32524.55
+Model 6 against 1: 0.674
+Average number of steps: 3557.71
+Model 6 against 2: 0.582
+Average number of steps: 13685.7
+Model 6 against 3: 0.562
+Average number of steps: 13702.56
+Model 6 against 4: 0.48
+Average number of steps: 24142.71
+Model 6 against 5: 0.523
+Average number of steps: 17161.13
+Model 6 against 6: 0.51
+Average number of steps: 18217.02
+
+Process finished with exit code 139 (interrupted by signal 11: SIGSEGV)
+
+#####################
+# Pre-training + smart self-play 1.5M + 1 M = 11.5M
+
+/home/pavelc/home-hdd/anaconda3/envs/adlr/bin/python /home/pavelc/_code/sem2/adlr/tum-adlr-ws20-03/src/scripts/train_selfplay.py
+Running training for model dqn-1000k
+/home/pavelc/home-hdd/anaconda3/envs/adlr/lib/python3.9/site-packages/gym/logger.py:30: UserWarning: WARN: Box bound precision lowered by casting to float32
+  warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+Running training round 7
+dqn-1000k
+Average round reward after training: 0.266
+Average number of steps per episode: 3916.71
+Model improved
+Running training round 8
+dqn-1000k
+Average round reward after training: 0.255
+Average number of steps per episode: 5305.78
+Model improved
+Running training round 9
+dqn-1000k
+Average round reward after training: 0.228
+Average number of steps per episode: 2039.43
+Model did not improve
+Running training round 9
+dqn-1000k
+Average round reward after training: 0.281
+Average number of steps per episode: 4361.3
+Model did not improve
+Running training round 9
+dqn-1000k
+Average round reward after training: 0.251
+Average number of steps per episode: 3436.77
+Model did not improve
+Running training round 9
+dqn-1000k
+Average round reward after training: 0.262
+Average number of steps per episode: 3119.0
+Model did not improve
+Running training round 9
+dqn-1000k
+Average round reward after training: 0.237
+Average number of steps per episode: 4281.27
+Model did not improve
+Running training round 9
+dqn-1000k
+Average round reward after training: 0.307
+Average number of steps per episode: 6918.41
+Model improved
+Running training round 10
+dqn-1000k
+Average round reward after training: 0.235
+Average number of steps per episode: 3832.13
+Model did not improve
+Running training round 10
+dqn-1000k
+Average round reward after training: 0.247
+Average number of steps per episode: 4736.36
+Model did not improve
+Running training round 10
+dqn-1000k
+Average round reward after training: 0.368
+Average number of steps per episode: 16663.73
+Model improved
+Running training round 11
+dqn-1000k
+Average round reward after training: 0.234
+Average number of steps per episode: 8762.9
+Model did not improve
+Running training round 11
+dqn-1000k
+Average round reward after training: 0.221
+Average number of steps per episode: 2634.68
+Model did not improve
+Running training round 11
+dqn-1000k
+Average round reward after training: 0.238
+Average number of steps per episode: 3231.57
+Model did not improve
+Running training round 11
+dqn-1000k
+Average round reward after training: 0.239
+Average number of steps per episode: 2828.2
+Model did not improve
+Running training round 11
+dqn-1000k
+Average round reward after training: 0.242
+Average number of steps per episode: 4713.66
+Model did not improve
+Running training round 11
+dqn-1000k
+Average round reward after training: 0.301
+Average number of steps per episode: 8703.3
+Model did not improve
+Running training round 11
+dqn-1000k
+Average round reward after training: 0.358
+Average number of steps per episode: 28434.33
+Model improved
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.255
+Average number of steps per episode: 3589.09
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.261
+Average number of steps per episode: 6247.36
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.269
+Average number of steps per episode: 4379.59
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.255
+Average number of steps per episode: 5224.3
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.227
+Average number of steps per episode: 2771.18
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.27
+Average number of steps per episode: 4589.66
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.22
+Average number of steps per episode: 3000.43
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.284
+Average number of steps per episode: 23034.8
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.359
+Average number of steps per episode: 16548.16
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.251
+Average number of steps per episode: 9455.63
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.24
+Average number of steps per episode: 4098.61
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.242
+Average number of steps per episode: 10570.99
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.267
+Average number of steps per episode: 4741.05
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.248
+Average number of steps per episode: 7217.61
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.23
+Average number of steps per episode: 3307.01
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.211
+Average number of steps per episode: 1893.97
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.249
+Average number of steps per episode: 6602.14
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.257
+Average number of steps per episode: 3695.02
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.271
+Average number of steps per episode: 27102.96
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.288
+Average number of steps per episode: 7469.9
+Model did not improve
+Running training round 12
+dqn-1000k
+Average round reward after training: 0.273
+Average number of steps per episode: 8644.59
+Model did not improve
+Stopping early due to patience
+Model 11 against 0: 0.356
+Average number of steps: 28079.73
+Model 11 against 1: 0.797
+Average number of steps: 3287.59
+Model 11 against 2: 0.597
+Average number of steps: 20372.87
+Model 11 against 3: 0.58
+Average number of steps: 20091.09
+Model 11 against 4: 0.595
+Average number of steps: 30419.71
+Model 11 against 5: 0.599
+Average number of steps: 36855.43
+Model 11 against 6: 0.506
+Average number of steps: 30834.56
+Model 11 against 7: 0.757
+Average number of steps: 7938.54
+Model 11 against 8: 0.731
+Average number of steps: 6839.65
+Model 11 against 9: 0.727
+Average number of steps: 4483.59
+Model 11 against 10: 0.614
+Average number of steps: 22912.4
+Model 11 against 11: 0.499
+Average number of steps: 57339.26
+
+Process finished with exit code 139 (interrupted by signal 11: SIGSEGV)
