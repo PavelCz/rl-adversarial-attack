@@ -161,6 +161,7 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, v
 
 
 def _evaluate_against_predecessors(previous_models, env, num_eval_eps):
+    print(f"Evaluating against predecessors...")
     last_model = previous_models[-1]
     last_model_index = len(previous_models) - 1
     for i, model in enumerate(previous_models):
