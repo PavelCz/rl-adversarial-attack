@@ -31,8 +31,8 @@ def get_args():
                         help='How many steps of the model to collect transitions for before SL starts')
 
     # Algorithm Arguments
-    parser.add_argument('--dueling', action='store_true',
-                        help='Enable Dueling Network')
+    parser.add_argument('--ddqn', action='store_true',
+                        help='Enable Double DQN')
     parser.add_argument('--frame_skipping', type=int, default=1,
                         help='Agent takes actions at every k frames')
 
@@ -41,7 +41,8 @@ def get_args():
                         help='Environment Name')
     parser.add_argument('--negative', action='store_true', default=False,
                         help='Give negative(-1) reward for not done.')
-    parser.add_argument('--obs_img', action='store_true', default=False)
+    parser.add_argument('--obs_img', type=str, default=None,
+                        help='Type both, p1 or p2 to decide which agent observes the whole image space')
 
     # Evaluation Arguments
     parser.add_argument('--load-model', action='store_true', default=False,
@@ -72,7 +73,7 @@ def get_args():
                         help='Start value of epsilon')
     parser.add_argument('--eps-final', type=float, default=0.01,
                         help='Final value of epsilon')
-    parser.add_argument('--eps-decay', type=int, default=30000,
+    parser.add_argument('--eps-decay', type=int, default=300000,
                         help='Adjustment parameter for epsilon')
 
     args = parser.parse_args()

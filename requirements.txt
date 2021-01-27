@@ -1,2 +1,4 @@
 gym
 stable-baselines3
+scikit-image
+tensorboard

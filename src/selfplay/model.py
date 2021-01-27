@@ -8,19 +8,16 @@ import math
 
 from functools import partial
 
-def DQN(env, args):
-    if args.obs_img:
-        if args.dueling:
-            model = DuelingDQN(env)
-        else:
-            model = DQNBase(env)
+def DQN(env, args, agent):
+    if args.obs_img == 'both' or args.obs_img == agent:
+        model = DQNConv(env)
     else:
         model = DQNFC(env)
     return model
 
-def Policy(env, args):
-    if args.obs_img:
-        model = PolicyImg(env)
+def Policy(env, args, agent):
+    if args.obs_img == 'both' or args.obs_img == agent:
+        model = PolicyConv(env)
     else:
         model = PolicyFC(env)
     return model
@@ -29,7 +26,8 @@ class DQNFC(nn.Module):
     def __init__(self, env):
         super(DQNFC, self).__init__()
         
-        self.input_shape = env.observation_space[0].shape
+        index = np.argmin([len(env.observation_space[0].shape), len(env.observation_space[1].shape)])
+        self.input_shape = env.observation_space[index].shape
         self.num_actions = env.action_space[0].n
         
         self.fc = nn.Sequential(
@@ -87,7 +85,8 @@ class PolicyFC(DQNFC):
             action = distribution.multinomial(1).item()
         return action
 
-class DQNBase(nn.Module):
+
+class DQNConv(nn.Module):
     """
     Basic DQN
 
@@ -96,17 +95,18 @@ class DQNBase(nn.Module):
     env         environment(openai gym)
     """
     def __init__(self, env):
-        super(DQNBase, self).__init__()
+        super(DQNConv, self).__init__()
         
-        self.input_shape = env.observation_space.shape
-        self.num_actions = env.action_space.n
+        index = np.argmax([len(env.observation_space[0].shape), len(env.observation_space[1].shape)])
+        self.input_shape = env.observation_space[index].shape
+        self.num_actions = env.action_space[0].n
 
         self.flatten = Flatten()
         
         self.features = nn.Sequential(
-            nn.Conv2d(self.input_shape[0], 8, kernel_size=4, stride=2),
+            nn.Conv2d(self.input_shape[0], 8, kernel_size=3, stride=2),
             cReLU(),
-            nn.Conv2d(16, 8, kernel_size=5, stride=1),
+            nn.Conv2d(16, 8, kernel_size=3, stride=1),
             cReLU(),
             nn.Conv2d(16, 8, kernel_size=3, stride=1),
             cReLU()
@@ -119,7 +119,6 @@ class DQNBase(nn.Module):
         )
         
     def forward(self, x):
-        x /= 255.
         x = self.features(x)
         x = self.flatten(x)
         x = self.fc(x)
@@ -144,36 +143,12 @@ class DQNBase(nn.Module):
             action = random.randrange(self.num_actions)
         return action
 
-class DuelingDQN(DQNBase):
-    """
-    Dueling Network Architectures for Deep Reinforcement Learning
-    https://arxiv.org/abs/1511.06581
-    """
-    def __init__(self, env):
-        super(DuelingDQN, self).__init__(env)
-        
-        self.advantage = self.fc
-
-        self.value = nn.Sequential(
-            nn.Linear(self._feature_size(), 32),
-            nn.ReLU(),
-            nn.Linear(32, 1)
-        )
-    
-    def forward(self, x):
-        x /= 255.
-        x = self.features(x)
-        x = self.flatten(x)
-        advantage = self.advantage(x)
-        value = self.value(x)
-        return value + advantage - advantage.mean(1, keepdim=True)
-
-class PolicyImg(DQNBase):
+class PolicyConv(DQNConv):
     """
     Policy with only actors. This is used in supervised learning for NFSP.
     """
     def __init__(self, env):
-        super(Policy, self).__init__(env)
+        super(PolicyConv, self).__init__(env)
         self.fc = nn.Sequential(
             nn.Linear(self._feature_size(), 32),
             nn.ReLU(),

@@ -29,15 +29,18 @@ def main():
     set_global_seeds(args.seed)
     env.seed(args.seed)
 
+    if args.obs_img:
+        env = ObservationVectorToImage(env, args.obs_img)
+
     if args.evaluate:
         if args.monitor:
             env = Monitor(env, './', video_callable=lambda episode_id: True, force=True)
-        env = ObservationVectorToImage(env)
         test(env, args)
         env.close()
         return
 
-    # Modify to a binary reward: +1 for scoring and -1 for missing the ball in training => zero-sum game
+    # Modify original reward to a binary reward: +1 for scoring and -1 for missing the ball in training 
+    # => zero-sum game
     env = RewardZeroToNegativeBiAgentWrapper(env)
     train(env, args, writer)
 

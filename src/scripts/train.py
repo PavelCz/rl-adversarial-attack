@@ -24,18 +24,18 @@ def train(env, args, writer):
 
     # Initialize Action Value Network and target network
     # RL Model for Player 1
-    p1_current_model = DQN(env, args).to(args.device)
-    p1_target_model = DQN(env, args).to(args.device)
+    p1_current_model = DQN(env, args, 'p1').to(args.device)
+    p1_target_model = DQN(env, args, 'p1').to(args.device)
     
 
     # RL Model for Player 2
-    p2_current_model = DQN(env, args).to(args.device)
-    p2_target_model = DQN(env, args).to(args.device)
+    p2_current_model = DQN(env, args, 'p2').to(args.device)
+    p2_target_model = DQN(env, args, 'p2').to(args.device)
 
     # Initialize Average Policy Network
     # SL Model for Player 1, 2
-    p1_policy = Policy(env, args).to(args.device)
-    p2_policy = Policy(env, args).to(args.device)
+    p1_policy = Policy(env, args, 'p1').to(args.device)
+    p2_policy = Policy(env, args, 'p2').to(args.device)
 
     epsilon_by_frame = epsilon_scheduler(args.eps_start, args.eps_final, args.eps_decay)
 
@@ -121,12 +121,6 @@ def train(env, args, writer):
         if np.any(reward):
             episode_length_list.append(tag_interval_length)
             tag_interval_length = 0
-            # if reward[0] == 1:
-            #     p1_reward = +1
-            #     p2_reward = -1
-            # elif reward[1] == 1:
-            #     p1_reward = -1
-            #     p2_reward = +1
 
         p1_reward_deque.append(p1_reward)
         p2_reward_deque.append(p2_reward)
@@ -256,17 +250,48 @@ def compute_rl_loss(current_model, target_model, replay_buffer, optimizer, args)
     reward = torch.tensor(reward).to(args.device)
     done = torch.tensor(done).to(args.device)
 
-    # Q-Learning with target network
+    # DQN current Q values
     q_values = current_model(state)
+    q_values_for_actions = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
+
+    # DQN target Q values
     target_next_q_values = target_model(next_state)
+    max_next_q_values = target_next_q_values.max(1)[0]
 
-    q_value = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
-    next_q_value = target_next_q_values.max(1)[0]
-
-    expected_q_value = reward + (args.gamma ** args.frame_skipping) * next_q_value * (1 - done)
+    target_q_values_for_actions = reward + (args.gamma ** args.frame_skipping) * max_next_q_values * (1 - done)
 
     # Huber Loss
-    loss = F.smooth_l1_loss(q_value, expected_q_value.detach(), reduction='none')
+    loss = F.smooth_l1_loss(q_values_for_actions, target_q_values_for_actions.detach(), reduction='none')
+    loss = (loss * weights).mean()
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    return loss
+
+def compute_rl_loss_DDQN(current_model, target_model, replay_buffer, optimizer, args):
+    state, action, reward, next_state, done = replay_buffer.sample(args.batch_size)
+    weights = torch.ones(args.batch_size).to(args.device)
+
+    state = torch.tensor(np.float32(state)).to(args.device)
+    next_state = torch.tensor(np.float32(next_state)).to(args.device)
+    action = torch.LongTensor(action).to(args.device)
+    reward = torch.tensor(reward).to(args.device)
+    done = torch.tensor(done).to(args.device)
+
+    # Double DQN(DDQN) current Q values
+    q_values = current_model(state)
+    q_values_for_actions = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
+
+    # Double DQN(DDQN) current next Q values and target next Q values
+    current_next_q_values = current_model(next_state)
+    target_next_q_values = target_model(next_state)
+    next_q_values = target_next_q_values.gather(1, current_next_q_values.max(1)[1].unsqueeze(1)).squeeze(1)
+
+    target_q_values_for_actions = reward + (args.gamma ** args.frame_skipping) * next_q_values * (1 - done)
+
+    # Huber Loss
+    loss = F.smooth_l1_loss(q_values_for_actions, target_q_values_for_actions.detach(), reduction='none')
     loss = (loss * weights).mean()
 
     optimizer.zero_grad()

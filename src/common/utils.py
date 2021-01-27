@@ -20,8 +20,8 @@ def create_log_dir(args):
         log_dir = log_dir + "negative-"
     if args.frame_skipping != 1:
         log_dir = log_dir + "{}-step-".format(args.frame_skipping)
-    if args.dueling:
-        log_dir = log_dir + "dueling-"
+    if args.ddqn:
+        log_dir = log_dir + "ddqn-"
     log_dir = log_dir + "dqn-{}".format(args.save_model)
 
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
@@ -41,10 +41,10 @@ def print_log(frame, prev_frame, prev_time, rewards, length_list, rl_losses, sl_
 
     avg_length = np.mean(length_list)
 
-    print("Frame: {:<8} FPS: {:.2f} Avg. Tagging Interval Length: {:.2f}".format(frame, fps, avg_length))
-    print("Player 1 Avg. Reward: {:.2f} Avg. RL/SL Loss: {:.2f}/{:.2f}".format(
+    print("Frame: {:<8} FPS: {:.2f} Avg. Frames per Round: {:.2f}".format(frame, fps, avg_length))
+    print("Player 1 Avg. Reward: {:.2f} Avg. RL/SL Loss: {:.4f}/{:.4f}".format(
         p1_avg_reward, p1_avg_rl_loss, p1_avg_sl_loss))
-    print("Player 2 Avg. Reward: {:.2f} Avg. RL/SL Loss: {:.2f}/{:.2f}".format(
+    print("Player 2 Avg. Reward: {:.2f} Avg. RL/SL Loss: {:.4f}/{:.4f}".format(
         p2_avg_reward, p2_avg_rl_loss, p2_avg_sl_loss))
 
 def print_args(args):
@@ -58,8 +58,8 @@ def name_file(args):
         fname += "negative-"
     if args.frame_skipping != 1:
         fname += "{}-step-".format(args.frame_skipping)
-    if args.dueling:
-        fname += "dueling-"
+    if args.ddqn:
+        fname += "ddqn-"
     fname += "dqn-{}.pth".format(args.save_model)
     return fname
 
@@ -151,7 +151,7 @@ def set_global_seeds(seed):
 
 def load_model_tmp(models, policies, args):
     fname = name_file(args)
-    fname = "tmp" + fname
+    # fname = "tmp" + fname
     fname = os.path.join("models", fname)
     print(fname)
     if args.device == torch.device("cpu"):
