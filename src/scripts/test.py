@@ -8,7 +8,7 @@ import random
 from time import sleep
 from src.common.utils import load_model, load_model_tmp
 from src.selfplay.model import DQN, Policy
-from src.attacks.fgsm import fgsm_attack, plot_perturbed_view
+from src.attacks.fgsm import fgsm_attack, plot_perturbed
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 
 def test(env, args): 
@@ -21,7 +21,7 @@ def test(env, args):
     load_model(models={"p1": p1_current_model, "p2": p2_current_model},
                policies={"p1": p1_policy, "p2": p2_policy}, args=args)
     # load_model_tmp(models={"p1": p1_current_model},
-                    # policies={"p1": p1_policy}, args=args)
+    #                 policies={"p1": p1_policy}, args=args)
 
     p1_reward_list = []
     p2_reward_list = []
@@ -42,17 +42,17 @@ def test(env, args):
                 sleep(0.01)
 
             # Agents follow average strategy
-            if args.fgsm == 1:
+            if args.fgsm == 'p1':
                 p1_state = fgsm_attack(torch.tensor(p1_state).to(args.device), p1_policy, 0.02, args)
-                # Plot perturbed state when paddle 1 might miss the ball 
-                if p1_state[3] < 0.02 and args.plot_fgsm :
-                    plot_perturbed_view(env.render(mode ='rgb_array'), p1_state)
-            elif args.fgsm == 2:
-                p2_state = fgsm_attack(torch.tensor(p2_state).to(args.device), p2_policy, 0.02, args)
-                # Plot perturbed state when paddle 2 might miss the ball
-                if p2_state[3] > 0.98 and args.plot_fgsm :
-                    plot_perturbed_view(env.render(mode ='rgb_array'), p2_state)
+                if args.plot_fgsm :
+                    plot_perturbed(env.render(mode ='rgb_array'), p1_state, args)
 
+            elif args.fgsm == 'p2':
+                p2_state = fgsm_attack(torch.tensor(p2_state).to(args.device), p2_policy, 0.02, args)
+                if args.plot_fgsm :
+                    plot_perturbed(env.render(mode ='rgb_array'), p2_state, args)
+            else:
+                raise AssertionError ("Argument takes value \"p1\" or \"p2\" but received {}".format(args.fgsm))
             # Random Action Agent
             # p1_action = env.action_space.sample()[0]
             # p2_action = env.action_space.sample()[1]

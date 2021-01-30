@@ -174,11 +174,17 @@ def train(env, args, writer):
             len(p1_reservoir_buffer) > args.sl_start and
             frame_idx % args.train_freq == 0):
             # Update Best Response with Reinforcement Learning
-            loss = compute_rl_loss(p1_current_model, p1_target_model, p1_replay_buffer, p1_rl_optimizer, args)
+            if args.ddqn:
+                loss = compute_rl_loss_DDQN(p1_current_model, p1_target_model, p1_replay_buffer, p1_rl_optimizer, args)
+            else:
+                loss = compute_rl_loss(p1_current_model, p1_target_model, p1_replay_buffer, p1_rl_optimizer, args)
             p1_rl_loss_list.append(loss.item())
             writer.add_scalar("p1/rl_loss", loss.item(), frame_idx)
 
-            loss = compute_rl_loss(p2_current_model, p2_target_model, p2_replay_buffer, p2_rl_optimizer, args)
+            if args.ddqn:
+                loss = compute_rl_loss_DDQN(p2_current_model, p2_target_model, p2_replay_buffer, p2_rl_optimizer, args)
+            else:
+                loss = compute_rl_loss(p2_current_model, p2_target_model, p2_replay_buffer, p2_rl_optimizer, args)
             p2_rl_loss_list.append(loss.item())
             writer.add_scalar("p2/rl_loss", loss.item(), frame_idx)
 

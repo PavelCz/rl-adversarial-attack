@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 from src.scripts.train import best_response_loss
 from ma_gym.envs.utils.draw import draw_grid, fill_cell, draw_border
+from skimage.transform import resize
 
 def fgsm_attack(state, model, epsilon, args):
     action = model.act(state)
@@ -23,7 +24,15 @@ def fgsm_attack(state, model, epsilon, args):
     perturbed_state = torch.cat((perturbed_state[:4], state[4:]))
     return perturbed_state.detach().cpu().numpy()
 
-def plot_perturbed_view(img, state):
+def plot_perturbed(img, state, args):
+    if args.obs_img == 'both' or args.obs_img == args.fgsm:
+        perturbed_image_observation(img, state)
+    else:
+        # Plot when the attacked agent miss the ball
+        if (args.fgsm == 'p1' and state[3] < 0.02) or (args.fgsm == 'p2' and state[3] > 0.98): 
+            perturbed_vector_observation(img, state)
+
+def perturbed_vector_observation(img, state):
     CELL_SIZE = 5
     AGENT_COLORS = 'black'
     BALL_HEAD_COLOR = 'black'
@@ -40,6 +49,18 @@ def plot_perturbed_view(img, state):
     img = draw_border(img, border_width=2, fill='red')    
     img.save("perturb.png")
 
+def perturbed_image_observation(img, state):
+    img = img[2:200, 2:150, :]
+    # Downsample to input image size and upsample back to original renedered image size
+    img = resize(img,(40,30), anti_aliasing=True)
+    img = resize(img, (200,150))
+    img = Image.fromarray(np.uint8(img.clip(0., 1.) * 255))
+    img.save("original.png")
+
+    state = np.swapaxes(state, 2, 0)
+    state = resize(state,(200,150))
+    state = Image.fromarray(np.uint8(state.clip(0., 1.) * 255))
+    state.save("perturb.png")
 
 def ball(ball_pos, onehot):
     ball_dir = np.nonzero(onehot)[0].item()
@@ -60,3 +81,5 @@ def ball(ball_pos, onehot):
     if ball_dir == 2:
         return [ball_pos, [ball_pos[0] - 1, ball_pos[1] + 1],
                 [ball_pos[0] - 2, ball_pos[1] + 2]]
+
+

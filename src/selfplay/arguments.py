@@ -13,7 +13,7 @@ def get_args():
                         help='disables CUDA training')
 
     # Training Arguments
-    parser.add_argument('--max-frames', type=int, default=1400000,
+    parser.add_argument('--max-frames', type=int, default=1500000,
                         help='Number of frames to train')
     parser.add_argument('--buffer-size', type=int, default=100000,
                         help='Maximum memory buffer size')
@@ -59,8 +59,8 @@ def get_args():
                         help='Frames for evaluation interval')
 
     # Adversarial Attacks
-    parser.add_argument('--fgsm', type=int, default=None,
-                        help='Select an agent to attack with Fast Gradient Sign Method(FGSM)')
+    parser.add_argument('--fgsm', type=str, default=None,
+                        help='Select p1 or p2 to attack with Fast Gradient Sign Method(FGSM)')
     parser.add_argument('--plot_fgsm', action='store_true',
                         help='Visualize perturbbed state')
 
@@ -73,7 +73,7 @@ def get_args():
                         help='Start value of epsilon')
     parser.add_argument('--eps-final', type=float, default=0.01,
                         help='Final value of epsilon')
-    parser.add_argument('--eps-decay', type=int, default=300000,
+    parser.add_argument('--eps-decay', type=int, default=30000,
                         help='Adjustment parameter for epsilon')
 
     args = parser.parse_args()

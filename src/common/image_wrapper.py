@@ -19,7 +19,6 @@ class ObservationVectorToImage(gym.ObservationWrapper):
         elif self.agent == 'p1':
             self.observation_space = [gym.spaces.Box(low=0.0, high=1.0, shape=(3, 40, 30), dtype=np.uint8),
                                   self.observation_space[1]]
-
         elif self.agent == 'p2': 
             self.observation_space = [self.observation_space[0],
                                     gym.spaces.Box(low=0.0, high=1.0, shape=(3, 40, 30), dtype=np.uint8)]

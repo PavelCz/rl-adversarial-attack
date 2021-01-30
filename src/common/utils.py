@@ -20,8 +20,10 @@ def create_log_dir(args):
         log_dir = log_dir + "negative-"
     if args.frame_skipping != 1:
         log_dir = log_dir + "{}-step-".format(args.frame_skipping)
+    if args.obs_img:
+        log_dir = log_dir + "img-"
     if args.ddqn:
-        log_dir = log_dir + "ddqn-"
+        log_dir = log_dir + "double-"
     log_dir = log_dir + "dqn-{}".format(args.save_model)
 
     now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
@@ -52,14 +54,16 @@ def print_args(args):
     for k, v in vars(args).items():
         print(' ' * 26 + k + ': ' + str(v))
 
-def name_file(args):
+def name_file(args, load_agent=None):
     fname = "{}-".format(args.env)
     if args.negative:
         fname += "negative-"
     if args.frame_skipping != 1:
         fname += "{}-step-".format(args.frame_skipping)
+    if args.obs_img == "both" or args.obs_img == load_agent:
+        fname += "img-"
     if args.ddqn:
-        fname += "ddqn-"
+        fname += "double-"
     fname += "dqn-{}.pth".format(args.save_model)
     return fname
 
@@ -76,9 +80,12 @@ def save_model(models, policies, args):
     }, fname)
 
 def load_model(models, policies, args):
-    fname = name_file(args)
-    fname = os.path.join("models", fname)
-    print(fname)
+    p1_fname = name_file(args, 'p1')
+    p1_fname = os.path.join("models", p1_fname)
+    p2_fname = name_file(args, 'p2')
+    p2_fname = os.path.join("models", p2_fname)
+    print("Load agent 1 from {}".format(p1_fname))
+    print("Load agent 2 from {}".format(p2_fname))
     if args.device == torch.device("cpu"):
         # Models save on GPU load on CPU
         map_location = lambda storage, loc: storage
@@ -86,14 +93,17 @@ def load_model(models, policies, args):
         # Models save on GPU load on GPU
         map_location = None
     
-    if not os.path.exists(fname):
-        raise ValueError("No model saved with name {}".format(fname))
+    if not os.path.exists(p1_fname):
+        raise ValueError("No model saved with name {}".format(p1_fname))
+    if not os.path.exists(p2_fname):
+        raise ValueError("No model saved with name {}".format(p2_fname))
 
-    checkpoint = torch.load(fname, map_location)
-    models['p1'].load_state_dict(checkpoint['p1_model'])
-    models['p2'].load_state_dict(checkpoint['p2_model'])
-    policies['p1'].load_state_dict(checkpoint['p1_policy'])
-    policies['p2'].load_state_dict(checkpoint['p2_policy'])
+    p1_checkpoint = torch.load(p1_fname, map_location)
+    p2_checkpoint = torch.load(p2_fname, map_location)
+    models['p1'].load_state_dict(p1_checkpoint['p1_model'])
+    models['p2'].load_state_dict(p2_checkpoint['p2_model'])
+    policies['p1'].load_state_dict(p1_checkpoint['p1_policy'])
+    policies['p2'].load_state_dict(p2_checkpoint['p2_policy'])
 
 def save_checkpoint(models, policies, frame_idx, optimizers, args):
     fname = name_file(args)
