@@ -9,7 +9,7 @@ from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 from ma_gym.wrappers import Monitor
 
 
-def main(save_video=False, num_eps=1, render=True):
+def main(save_video=False, num_eps=1, render=True, attack=True):
     # Initialize environment
     env = gym.make('PongDuel-v0')
     if save_video:
@@ -25,9 +25,9 @@ def main(save_video=False, num_eps=1, render=True):
     # op = SimpleRuleBasedAgent(env)
     op = DQN.load(model_dir + op_name)
     env.set_opponent(op)
-    avg_reward, _ = evaluate(model, env, slowness=0.05, num_eps=num_eps, render=render, print_obs=False, verbose=False)
+    avg_reward, _ = evaluate(model, env, attack=attack, slowness=0.05, num_eps=num_eps, render=render, print_obs=False, verbose=False)
     print(avg_reward)
 
 
 if __name__ == '__main__':
-    main(num_eps=100, render=False)
+    main()

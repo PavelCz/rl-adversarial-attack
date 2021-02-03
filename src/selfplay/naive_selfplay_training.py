@@ -11,6 +11,7 @@ from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 
 from src.agents.random_agent import RandomAgent
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
+from src.attacks.fgsm import fgsm_attack_sb3
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 
@@ -127,7 +128,7 @@ def _make_model_path(model_name: str, i: int):
     return model_dir + model_name + str(i) + '.out'
 
 
-def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, verbose=False):
+def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, verbose=False, attack=False):
     env.set_opponent_right_side(True)
     total_reward = 0
     total_rounds = 0
@@ -139,6 +140,9 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, v
         obs = env.reset()
         info = None
         while not done:
+            if attack:
+                # Perturb observation
+                obs = fgsm_attack_sb3(obs, model, 0.02)
             action, _states = model.predict(obs, deterministic=False)
             if verbose:
                 print(action)
