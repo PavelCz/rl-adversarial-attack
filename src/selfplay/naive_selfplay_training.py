@@ -11,7 +11,7 @@ from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 
 from src.agents.random_agent import RandomAgent
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
-from src.attacks.fgsm import fgsm_attack_sb3
+from src.attacks.fgsm import fgsm_attack_sb3, perturbed_vector_observation
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 
@@ -128,7 +128,7 @@ def _make_model_path(model_name: str, i: int):
     return model_dir + model_name + str(i) + '.out'
 
 
-def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, verbose=False, attack=False):
+def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img=False, print_obs=False, verbose=False, attack=False):
     env.set_opponent_right_side(True)
     total_reward = 0
     total_rounds = 0
@@ -143,6 +143,11 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, v
             if attack:
                 # Perturb observation
                 obs = fgsm_attack_sb3(obs, model, 0.02)
+            if render:
+                time.sleep(slowness)
+                if save_perturbed_img:
+                    perturbed_vector_observation(env.render(mode='rgb_array'), obs)
+                env.render()
             action, _states = model.predict(obs, deterministic=False)
             if verbose:
                 print(action)
@@ -151,9 +156,6 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, print_obs=False, v
 
             # print(reward)
             ep_reward += reward
-            if render:
-                time.sleep(slowness)
-                env.render()
             if print_obs:
                 print('\r', *obs, end="")
         total_reward += ep_reward
