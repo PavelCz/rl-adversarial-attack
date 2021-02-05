@@ -34,10 +34,10 @@ class ObservationVectorToImage(gym.ObservationWrapper):
         # img.save("observation_img.png")
 
         if self.agent == 'both':
-            return (np.swapaxes(observation_img, 2, 0), np.swapaxes(observation_img, 2, 0))
+            return (np.transpose(observation_img, (2, 0, 1)), np.transpose(observation_img, (2, 0, 1)))
         elif self.agent == 'p1':
-            return (np.swapaxes(observation_img, 2, 0), observation[1])
+            return (np.transpose(observation_img, (2, 0, 1)), observation[1])
         elif self.agent == 'p2': 
-            return (observation[0], np.swapaxes(observation_img, 2, 0))
+            return (observation[0], np.transpose(observation_img, (2, 0, 1)))
         else:                        
             raise AssertionError ("Argument takes value \"both\", \"p1\" or \"p2\" but received {}".format(self.agent))
