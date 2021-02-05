@@ -150,7 +150,8 @@ def _make_model_path(model_name: str, i: int):
     return model_dir + model_name + str(i) + '.out'
 
 
-def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img=False, print_obs=False, verbose=False, attack=False):
+def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img=False, print_obs=False, verbose=False, attack=False,
+             img_obs=True):
     env.set_opponent_right_side(True)
     total_reward = 0
     total_rounds = 0
@@ -164,7 +165,7 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img
         while not done:
             if attack:
                 # Perturb observation
-                obs = fgsm_attack_sb3(obs, model, 0.02)
+                obs = fgsm_attack_sb3(obs, model, 0.1, img_obs=img_obs)
             if render:
                 time.sleep(slowness)
                 if save_perturbed_img:
