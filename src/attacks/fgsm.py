@@ -25,18 +25,25 @@ def fgsm_attack(state, model, epsilon, args):
     return perturbed_state.detach().cpu().numpy()
 
 
-def fgsm_attack_sb3(obs, model, epsilon):
-    obs = torch.tensor([obs])
-    obs.requires_grad = True
+def fgsm_attack_sb3(obs, model, epsilon, img_obs):
 
     q_net = model.q_net
+    q_net.zero_grad()  # Zero out the gradients
+
+    obs = torch.tensor([obs])
+
+    # Move obs to correct device
+    obs = obs.to(q_net.device)
+    obs.requires_grad = True
+    obs.retain_grad()
+    
     q_vals = q_net(obs)
 
     # We assume our ground truth, i.e. the best action to take in this state, is the action that is chosen by our model
     # In other words, we assume our model performs well on the unperturbed data
     target = torch.argmax(q_vals).unsqueeze(0)
 
-    # q_vals of q_net are not a probability distro but a estimated q value. We apply the softmax in order to be able to calculate the
+    # q_vals of q_net are not a probability distro but an estimated q value. We apply the softmax in order to be able to calculate the
     # cross-entropy loss for our attack
     preds = torch.softmax(q_vals, 1)
 
@@ -45,15 +52,16 @@ def fgsm_attack_sb3(obs, model, epsilon):
     loss = loss_func(preds, target)
 
     # Perform backward pass to get the gradients
-    q_net.zero_grad()  # Zero out the gradients
     loss.backward()
-    state_grad = obs.grad.detach().squeeze()
+    state_grad = obs.grad.squeeze()
 
     # Perform update step
     obs = obs.squeeze()
     perturbed_obs = obs + epsilon * state_grad.sign()
-    # Perturb only agent position and ball position, leave ball direction (which is one-hot) as before
-    perturbed_obs = torch.cat((perturbed_obs[:4], obs[4:]))
+    if not img_obs:
+        # If we are using vector and not image observations perturb only agent position and ball position, leave ball direction
+        # (which is one-hot) as before
+        perturbed_obs = torch.cat((perturbed_obs[:4], obs[4:]))
     return perturbed_obs.detach().cpu().numpy()
 
 
