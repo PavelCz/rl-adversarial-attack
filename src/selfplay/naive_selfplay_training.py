@@ -12,9 +12,11 @@ from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 from src.agents.random_agent import RandomAgent
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.attacks.fgsm import fgsm_attack_sb3, perturbed_vector_observation
+from src.common.image_wrapper import ObservationVectorToImage
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 
+from ma_gym.envs.pong_duel import pong_duel
 best_models = []
 
 
@@ -25,20 +27,35 @@ def learn_with_selfplay(max_agents,
                         num_skip_steps=0,
                         model_name='dqn',
                         only_rule_based_op=False,
-                        patience=5):
+                        patience=5,
+                        image_observations=True):
+    # In order to ensure symmetry for the agent when playing on either side, change second agent to red, so both have the same color
+    if image_observations:
+        pong_duel.AGENT_COLORS[1] = 'red'
     # Initialize environment
     train_env = gym.make('PongDuel-v0')
     train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
-    train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps)
+
+    train_env_rule_based = ObservationVectorToImage(train_env, 'p1')
+    train_env_rule_based = MAGymCompatibilityWrapper(train_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
+    train_env_rule_based = Monitor(train_env_rule_based)
+
+    train_env = ObservationVectorToImage(train_env, 'both')
+    train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='both')
     train_env = Monitor(train_env)
 
+    eval_env_rule_based = gym.make('PongDuel-v0')
+    eval_env_rule_based = ObservationVectorToImage(eval_env_rule_based, 'p1')
+    eval_env_rule_based = MAGymCompatibilityWrapper(eval_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
+    eval_op = SimpleRuleBasedAgent(eval_env_rule_based)
+    eval_env_rule_based.set_opponent(eval_op)
+
     eval_env = gym.make('PongDuel-v0')
-    eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps)
-    eval_op = SimpleRuleBasedAgent(eval_env)
-    eval_env.set_opponent(eval_op)
+    eval_env = ObservationVectorToImage(eval_env, 'both')
+    eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps, image_observations='both')
 
     # Initialize first agent
-    pre_train_agent = SimpleRuleBasedAgent(train_env)
+    pre_train_agent = SimpleRuleBasedAgent(train_env_rule_based)
     previous_models = [pre_train_agent]
 
     # Load potentially saved previous models
@@ -58,7 +75,7 @@ def learn_with_selfplay(max_agents,
         # main_model = A2C('MlpPolicy', policy_kwargs=dict(optimizer_class=RMSpropTFLike, optimizer_kwargs=dict(eps=1e-5)), env=train_env, verbose=0,
         #                 tensorboard_log="output/tb-log")
         # main_model = A2C('MlpPolicy', train_env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
-        main_model = DQN('MlpPolicy', train_env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
+        main_model = DQN('MlpPolicy', train_env_rule_based, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
     else:
         main_model = copy.deepcopy(previous_models[last_agent_id])
         main_model.set_env(train_env)
@@ -71,21 +88,26 @@ def learn_with_selfplay(max_agents,
 
         # Choose opponent based on setting
         if only_rule_based_op:
+            current_train_env = train_env_rule_based
             # Use rule-based as opponent
-            train_env.set_opponent(SimpleRuleBasedAgent(train_env))
+            current_train_env.set_opponent(SimpleRuleBasedAgent(current_train_env))
         else:
+            if opponent_id == 0:
+                current_train_env = train_env_rule_based
+            else:
+                current_train_env = train_env
             # Take opponent from the previous version of the model
-            train_env.set_opponent(previous_models[opponent_id])
+            current_train_env.set_opponent(previous_models[opponent_id])
 
         # Train the model
-        train_env.set_opponent_right_side(True)
+        current_train_env.set_opponent_right_side(True)
 
         chosen_n_steps = num_learn_steps_pre_training if opponent_id == 0 else num_learn_steps  # Iteration 0 is pre-training
         main_model.learn(total_timesteps=chosen_n_steps, tb_log_name=model_name)  # , callback=learn_callback)
 
         # Do evaluation for this training round
-        eval_env.set_opponent(eval_op)
-        avg_round_reward, num_steps = evaluate(main_model, eval_env, num_eps=num_eval_eps)
+        eval_env_rule_based.set_opponent(eval_op)
+        avg_round_reward, num_steps = evaluate(main_model, eval_env_rule_based, num_eps=num_eval_eps)
         print(model_name)
         print(f"Average round reward after training: {avg_round_reward}")
         print(f"Average number of steps per episode: {num_steps / num_eval_eps}")
@@ -120,7 +142,7 @@ def learn_with_selfplay(max_agents,
             # Opponent does not change
 
     # Evaluate the last model against each of its previous iterations
-    _evaluate_against_predecessors(previous_models, eval_env, num_eval_eps)
+    _evaluate_against_predecessors(previous_models, env_rule_based=eval_env_rule_based, env_normal=eval_env, num_eval_eps=num_eval_eps)
 
 
 def _make_model_path(model_name: str, i: int):
@@ -166,11 +188,15 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img
     return avg_round_reward, total_steps
 
 
-def _evaluate_against_predecessors(previous_models, env, num_eval_eps):
+def _evaluate_against_predecessors(previous_models, env_rule_based, env_normal, num_eval_eps):
     print(f"Evaluating against predecessors...")
     last_model = previous_models[-1]
     last_model_index = len(previous_models) - 1
     for i, model in enumerate(previous_models):
+        if i == 0:
+            env = env_rule_based
+        else:
+            env = env_normal
         env.set_opponent(model)
         avg_round_reward, num_steps = evaluate(last_model, env, num_eps=num_eval_eps)
         print(f"Model {last_model_index} against {i}: {avg_round_reward}")

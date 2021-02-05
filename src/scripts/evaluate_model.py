@@ -7,18 +7,22 @@ from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.naive_selfplay_training import evaluate
 from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 from ma_gym.wrappers import Monitor
+from ma_gym.envs.pong_duel import pong_duel
 
 
 def main(save_video=False, num_eps=1, render=True, attack=True, save_perturbed_img=True):
+    pong_duel.AGENT_COLORS[1] = 'red'
     # Initialize environment
     env = gym.make('PongDuel-v0')
     if save_video:
         env = Monitor(env, './output/recordings', video_callable=lambda episode_id: True, force=True)
     # env = RewardZeroToNegativeBiAgentWrapper(env)
-    env = MAGymCompatibilityWrapper(env)
+    env = MAGymCompatibilityWrapper(env, image_observations='both')
     model_dir = 'output/models/'
-    agent_name = "dqn-500k39.out"
-    op_name = agent_name
+
+    # Models
+    agent_name = "dqn-best-agent-1000k-x-11-selfplay.out"
+    op_name = 'dqn-best-agent-1000k-x-11-selfplay.out'
 
     model = DQN.load(model_dir + agent_name)
     # op = RandomAgent(env)
