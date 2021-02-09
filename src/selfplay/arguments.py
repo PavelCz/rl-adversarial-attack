@@ -41,6 +41,8 @@ def get_args():
                         help='Environment Name')
     parser.add_argument('--negative', action='store_true', default=False,
                         help='Give negative(-1) reward for not done.')
+    parser.add_argument('--obs_opp', type=str, default=None,
+                        help='Type both, p1 or p2 to decide which agent observes its opponent')                    
     parser.add_argument('--obs_img', type=str, default=None,
                         help='Type both, p1 or p2 to decide which agent observes the whole image space')
 
@@ -63,6 +65,8 @@ def get_args():
                         help='Select p1 or p2 to attack with Fast Gradient Sign Method(FGSM)')
     parser.add_argument('--plot_fgsm', action='store_true',
                         help='Visualize perturbbed state')
+    parser.add_argument('--adv_policy', type=str, default=None,
+                        help='Select p1 or p2 to attack by an adversary trained with adversarial policy')
 
     # Optimization Arguments
     parser.add_argument('--lr', type=float, default=1e-4,
@@ -73,7 +77,7 @@ def get_args():
                         help='Start value of epsilon')
     parser.add_argument('--eps-final', type=float, default=0.01,
                         help='Final value of epsilon')
-    parser.add_argument('--eps-decay', type=int, default=30000,
+    parser.add_argument('--eps-decay', type=int, default=300000,
                         help='Adjustment parameter for epsilon')
 
     args = parser.parse_args()

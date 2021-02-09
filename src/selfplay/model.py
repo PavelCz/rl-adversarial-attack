@@ -10,23 +10,23 @@ from functools import partial
 
 def DQN(env, args, agent):
     if args.obs_img == 'both' or args.obs_img == agent:
-        model = DQNConv(env)
+        model = DQNConv(env, agent)
     else:
-        model = DQNFC(env)
+        model = DQNFC(env, agent)
     return model
 
 def Policy(env, args, agent):
     if args.obs_img == 'both' or args.obs_img == agent:
-        model = PolicyConv(env)
+        model = PolicyConv(env, agent)
     else:
-        model = PolicyFC(env)
+        model = PolicyFC(env, agent)
     return model
 
 class DQNFC(nn.Module):
-    def __init__(self, env):
+    def __init__(self, env, agent):
         super(DQNFC, self).__init__()
         
-        index = np.argmin([len(env.observation_space[0].shape), len(env.observation_space[1].shape)])
+        index = 0 if agent == 'p1' else 1
         self.input_shape = env.observation_space[index].shape
         self.num_actions = env.action_space[0].n
         
@@ -64,8 +64,8 @@ class PolicyFC(DQNFC):
     """
     Policy with only actors. This is used in supervised learning for NFSP.
     """
-    def __init__(self, env):
-        super(PolicyFC, self).__init__(env)
+    def __init__(self, env, agent):
+        super(PolicyFC, self).__init__(env, agent)
         self.fc = nn.Sequential(
             nn.Linear(self.input_shape[0], 32),
             nn.ReLU(),
@@ -94,10 +94,10 @@ class DQNConv(nn.Module):
     ---------
     env         environment(openai gym)
     """
-    def __init__(self, env):
+    def __init__(self, env, agent):
         super(DQNConv, self).__init__()
         
-        index = np.argmax([len(env.observation_space[0].shape), len(env.observation_space[1].shape)])
+        index = 0 if agent == 'p1' else 1
         self.input_shape = env.observation_space[index].shape
         self.num_actions = env.action_space[0].n
 
@@ -147,8 +147,8 @@ class PolicyConv(DQNConv):
     """
     Policy with only actors. This is used in supervised learning for NFSP.
     """
-    def __init__(self, env):
-        super(PolicyConv, self).__init__(env)
+    def __init__(self, env, agent):
+        super(PolicyConv, self).__init__(env, agent)
         self.fc = nn.Sequential(
             nn.Linear(self._feature_size(), 32),
             nn.ReLU(),

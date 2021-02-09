@@ -6,7 +6,9 @@ import os
 import random
 
 from time import sleep
-from src.common.utils import load_model, load_model_tmp
+from stable_baselines3 import PPO
+
+from src.common.utils import load_model
 from src.selfplay.model import DQN, Policy
 from src.attacks.fgsm import fgsm_attack, plot_perturbed
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
@@ -20,19 +22,15 @@ def test(env, args):
     p1_policy.eval(), p2_policy.eval()
     load_model(models={"p1": p1_current_model, "p2": p2_current_model},
                policies={"p1": p1_policy, "p2": p2_policy}, args=args)
-    # load_model_tmp(models={"p1": p1_current_model},
-    #                 policies={"p1": p1_policy}, args=args)
-
+    if args.adv_policy:
+        adversary = PPO.load("adversary")
     p1_reward_list = []
     p2_reward_list = []
     length_list = []
     p1 = SimpleRuleBasedAgent(env)
     p2 = SimpleRuleBasedAgent(env)
-    env = env
     for _ in range(10):
-        state = env.reset()
-        p1_state = state[0]
-        p2_state = state[1]
+        p1_state, p2_state = env.reset()
         p1_episode_reward = 0
         p2_episode_reward = 0
         episode_length = 0
@@ -41,18 +39,24 @@ def test(env, args):
                 env.render()
                 sleep(0.01)
 
-            # Agents follow average strategy
-            if args.fgsm == 'p1':
-                p1_state = fgsm_attack(torch.tensor(p1_state).to(args.device), p1_policy, 0.02, args)
-                if args.plot_fgsm :
-                    plot_perturbed(env.render(mode ='rgb_array'), p1_state, args)
+            if args.fgsm:
+                if args.fgsm == 'p1':
+                    p1_state = fgsm_attack(torch.tensor(p1_state).to(args.device), p1_policy, 0.02, args)
+                    if args.plot_fgsm :
+                        plot_perturbed(env.render(mode ='rgb_array'), p1_state, args)
 
-            elif args.fgsm == 'p2':
-                p2_state = fgsm_attack(torch.tensor(p2_state).to(args.device), p2_policy, 0.02, args)
-                if args.plot_fgsm :
-                    plot_perturbed(env.render(mode ='rgb_array'), p2_state, args)
-            else:
-                raise AssertionError ("Argument takes value \"p1\" or \"p2\" but received {}".format(args.fgsm))
+                elif args.fgsm == 'p2':
+                    p2_state = fgsm_attack(torch.tensor(p2_state).to(args.device), p2_policy, 0.02, args)
+                    if args.plot_fgsm :
+                        plot_perturbed(env.render(mode ='rgb_array'), p2_state, args)
+                else:
+                    raise AssertionError ("Argument takes value \"p1\" or \"p2\" but received {}".format(args.fgsm))
+            
+            if args.adv_policy:
+                if args.adv_policy == 'p1':
+                    p2_action, _states = adversary.predict(p2_state)
+                elif args.adv_policy == 'p2':
+                    p1_action, _states = adversary.predict(p1_state)
             # Random Action Agent
             # p1_action = env.action_space.sample()[0]
             # p2_action = env.action_space.sample()[1]
@@ -62,7 +66,7 @@ def test(env, args):
             # p2_action, _ = p2.predict(p2_state)
 
             # NFSP Agent
-            p1_action = p1_policy.act(torch.tensor(p1_state).to(args.device))
+            # p1_action = p1_policy.act(torch.tensor(p1_state).to(args.device))
             p2_action = p2_policy.act(torch.tensor(p2_state).to(args.device))
 
             # if random.random() > args.eta:
