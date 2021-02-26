@@ -20,6 +20,8 @@ def create_log_dir(args):
         log_dir = log_dir + "negative-"
     if args.frame_skipping != 1:
         log_dir = log_dir + "{}-step-".format(args.frame_skipping)
+    if args.obs_opp:
+        log_dir = log_dir + "opp-"
     if args.obs_img:
         log_dir = log_dir + "img-"
     if args.ddqn:
@@ -60,8 +62,12 @@ def name_file(args, load_agent=None):
         fname += "negative-"
     if args.frame_skipping != 1:
         fname += "{}-step-".format(args.frame_skipping)
-    if args.obs_img == "both" or args.obs_img == load_agent:
-        fname += "img-"
+    if args.obs_opp:
+        if args.obs_opp == "both" or args.obs_opp == load_agent:
+            fname += "opp-"
+    if args.obs_img:
+        if args.obs_img == "both" or args.obs_img == load_agent:
+            fname += "img-"
     if args.ddqn:
         fname += "double-"
     fname += "dqn-{}.pth".format(args.save_model)
@@ -159,11 +165,12 @@ def set_global_seeds(seed):
     np.random.seed(seed)
     random.seed(seed)
 
-def load_model_tmp(models, policies, args):
-    fname = name_file(args)
-    # fname = "tmp" + fname
+def load_model_single(model, policy, args, agent):
+    fname = name_file(args, agent)
     fname = os.path.join("models", fname)
-    print(fname)
+    model_key = agent + "_model"
+    policy_key = agent + "_policy"
+    print("Load agent {} from {}".format(agent, fname))
     if args.device == torch.device("cpu"):
         # Models save on GPU load on CPU
         map_location = lambda storage, loc: storage
@@ -175,5 +182,5 @@ def load_model_tmp(models, policies, args):
         raise ValueError("No model saved with name {}".format(fname))
 
     checkpoint = torch.load(fname, map_location)
-    models['p1'].load_state_dict(checkpoint['p1_model'])
-    policies['p1'].load_state_dict(checkpoint['p1_policy'])
+    model.load_state_dict(checkpoint[model_key])
+    policy.load_state_dict(checkpoint[policy_key])
