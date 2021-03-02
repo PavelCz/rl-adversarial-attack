@@ -6,6 +6,7 @@ from pathlib import Path
 import gym
 import ma_gym  # Necessary so the PongDuel env exists
 import numpy as np
+from tqdm import tqdm
 from stable_baselines3 import PPO, DQN, A2C
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
@@ -176,7 +177,7 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img
     total_reward = 0
     total_rounds = 0
     total_steps = 0
-    for episode in range(num_eps):
+    for episode in tqdm(range(num_eps), desc='Evaluating...'):
         ep_reward = 0
         # Evaluate the agent
         done = False
