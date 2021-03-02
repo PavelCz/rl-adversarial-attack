@@ -1,6 +1,7 @@
 import os
 import copy
 import time
+from pathlib import Path
 
 import gym
 import ma_gym  # Necessary so the PongDuel env exists
@@ -28,31 +29,46 @@ def learn_with_selfplay(max_agents,
                         model_name='dqn',
                         only_rule_based_op=False,
                         patience=5,
-                        image_observations=True):
+                        image_observations=True,
+                        output_folder="output"):
     # In order to ensure symmetry for the agent when playing on either side, change second agent to red, so both have the same color
     if image_observations:
         pong_duel.AGENT_COLORS[1] = 'red'
-    # Initialize environment
-    train_env = gym.make('PongDuel-v0')
-    train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
+        # Initialize environment
+        train_env = gym.make('PongDuel-v0')
+        train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
 
-    train_env_rule_based = ObservationVectorToImage(train_env, 'p1')
-    train_env_rule_based = MAGymCompatibilityWrapper(train_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
-    train_env_rule_based = Monitor(train_env_rule_based)
+        train_env_rule_based = ObservationVectorToImage(train_env, 'p1')
+        train_env_rule_based = MAGymCompatibilityWrapper(train_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
+        train_env_rule_based = Monitor(train_env_rule_based)
 
-    train_env = ObservationVectorToImage(train_env, 'both')
-    train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='both')
-    train_env = Monitor(train_env)
+        train_env = ObservationVectorToImage(train_env, 'both')
+        train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='both')
+        train_env = Monitor(train_env)
 
-    eval_env_rule_based = gym.make('PongDuel-v0')
-    eval_env_rule_based = ObservationVectorToImage(eval_env_rule_based, 'p1')
-    eval_env_rule_based = MAGymCompatibilityWrapper(eval_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
-    eval_op = SimpleRuleBasedAgent(eval_env_rule_based)
-    eval_env_rule_based.set_opponent(eval_op)
+        eval_env_rule_based = gym.make('PongDuel-v0')
+        eval_env_rule_based = ObservationVectorToImage(eval_env_rule_based, 'p1')
+        eval_env_rule_based = MAGymCompatibilityWrapper(eval_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
+        eval_op = SimpleRuleBasedAgent(eval_env_rule_based)
+        eval_env_rule_based.set_opponent(eval_op)
 
-    eval_env = gym.make('PongDuel-v0')
-    eval_env = ObservationVectorToImage(eval_env, 'both')
-    eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps, image_observations='both')
+        eval_env = gym.make('PongDuel-v0')
+        eval_env = ObservationVectorToImage(eval_env, 'both')
+        eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps, image_observations='both')
+    else:  # Init for feature observations
+        train_env = gym.make('PongDuel-v0')
+        train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
+        train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='none')
+        train_env = Monitor(train_env)
+
+        eval_env = gym.make('PongDuel-v0')
+        eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps, image_observations='none')
+
+        # For feature observations we don't need to separate between environment for rule-based and non-rule-based agents
+        train_env_rule_based = train_env
+        eval_env_rule_based = eval_env
+        eval_op = SimpleRuleBasedAgent(eval_env_rule_based)
+        eval_env_rule_based.set_opponent(eval_op)
 
     # Initialize first agent
     pre_train_agent = SimpleRuleBasedAgent(train_env_rule_based)
@@ -60,7 +76,7 @@ def learn_with_selfplay(max_agents,
 
     # Load potentially saved previous models
     for opponent_id in range(1, max_agents):
-        path = _make_model_path(model_name, opponent_id)
+        path = _make_model_path(output_folder, model_name, opponent_id)
         if os.path.isfile(path):
             model = DQN.load(path)
             previous_models.append(model)
@@ -71,15 +87,16 @@ def learn_with_selfplay(max_agents,
     last_agent_id = len(previous_models) - 1
     prev_num_steps = 0
     patience_counter = 0
+    tb_path = Path(output_folder) / "tb-log"
     if last_agent_id == 0:
         # main_model = A2C('MlpPolicy', policy_kwargs=dict(optimizer_class=RMSpropTFLike, optimizer_kwargs=dict(eps=1e-5)), env=train_env, verbose=0,
         #                 tensorboard_log="output/tb-log")
         # main_model = A2C('MlpPolicy', train_env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
-        main_model = DQN('MlpPolicy', train_env_rule_based, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
+        main_model = DQN('MlpPolicy', train_env_rule_based, verbose=0, tensorboard_log=tb_path)  # , exploration_fraction=0.3)
     else:
         main_model = copy.deepcopy(previous_models[last_agent_id])
         main_model.set_env(train_env)
-        main_model.tensorboard_log = "output/tb-log"
+        main_model.tensorboard_log = tb_path
 
     # Start training with self-play over several rounds
     opponent_id = last_agent_id
@@ -120,9 +137,9 @@ def learn_with_selfplay(max_agents,
             patience_counter = 0
 
             # Save the further trained model to disk
-            main_model.save(_make_model_path(model_name, opponent_id + 1))
+            main_model.save(_make_model_path(output_folder, model_name, opponent_id + 1))
             # Make a copy of the just saved model by loading it
-            copy_of_model = DQN.load(_make_model_path(model_name, opponent_id + 1))
+            copy_of_model = DQN.load(_make_model_path(output_folder, model_name, opponent_id + 1))
             # Save the copy to the list
             previous_models.append(copy_of_model)
 
@@ -136,7 +153,7 @@ def learn_with_selfplay(max_agents,
                 print('Stopping early due to patience')
                 break
             # Because our model did not improve compared to the previous one, we reset our main_model to the previous one
-            main_model = DQN.load(_make_model_path(model_name, opponent_id))
+            main_model = DQN.load(_make_model_path(output_folder, model_name, opponent_id))
             main_model.set_env(train_env)
 
             # Opponent does not change
@@ -145,12 +162,12 @@ def learn_with_selfplay(max_agents,
     _evaluate_against_predecessors(previous_models, env_rule_based=eval_env_rule_based, env_normal=eval_env, num_eval_eps=num_eval_eps)
 
 
-def _make_model_path(model_name: str, i: int):
-    model_dir = 'output/models/'
-    return model_dir + model_name + str(i) + '.out'
+def _make_model_path(output_path, model_name: str, i: int):
+    model_dir = Path(output_path) / 'models'
+    return model_dir / (model_name + str(i) + '.out')
 
 
-def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img=False, print_obs=False, verbose=False, attack=False,
+def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img=False, print_obs=False, verbose=False, attack=None,
              img_obs=True):
     env.set_opponent_right_side(True)
     total_reward = 0
@@ -163,7 +180,7 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img
         obs = env.reset()
         info = None
         while not done:
-            if attack:
+            if attack == "fgsm":
                 # Perturb observation
                 obs = fgsm_attack_sb3(obs, model, 0.1, img_obs=img_obs)
             if render:

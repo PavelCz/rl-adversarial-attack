@@ -75,6 +75,8 @@ class MAGymCompatibilityWrapper(gym.Wrapper):
             img_obs_op = True
         elif self.image_observations == 'main':
             img_obs_op = False
+        elif self.image_observations == 'none':  # This means feature observations
+            img_obs_op = False
         else:
             raise AttributeError("self.image_observation must be either 'main' or 'both'")
 
