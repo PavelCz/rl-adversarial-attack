@@ -14,6 +14,7 @@ from src.agents.random_agent import RandomAgent
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.attacks.fgsm import fgsm_attack_sb3, perturbed_vector_observation
 from src.common.image_wrapper import ObservationVectorToImage
+from src.common.opponent_wrapper import ObserveOpponent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 
@@ -57,11 +58,13 @@ def learn_with_selfplay(max_agents,
         eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps, image_observations='both')
     else:  # Init for feature observations
         train_env = gym.make('PongDuel-v0')
+        train_env = ObserveOpponent(train_env, 'both')
         train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
         train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='none')
         train_env = Monitor(train_env)
 
         eval_env = gym.make('PongDuel-v0')
+        eval_env = ObserveOpponent(eval_env, 'both')
         eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps, image_observations='none')
 
         # For feature observations we don't need to separate between environment for rule-based and non-rule-based agents
