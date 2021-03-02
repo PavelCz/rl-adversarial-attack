@@ -11,7 +11,7 @@ from ma_gym.wrappers import Monitor
 from ma_gym.envs.pong_duel import pong_duel
 
 
-def main(save_video=False, num_eps=1, render=True, attack=True, save_perturbed_img=False):
+def main(save_video=False, num_eps=1, render=True, attack="fgsm", save_perturbed_img=False):
     pong_duel.AGENT_COLORS[1] = 'red'
     # Initialize environment
     env = gym.make('PongDuel-v0')
