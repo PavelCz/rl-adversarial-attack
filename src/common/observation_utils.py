@@ -1,4 +1,5 @@
 import numpy as np
+from ma_gym.envs.pong_duel import pong_duel
 
 
 def flip_observation_horizontally(obs, image_observations):
@@ -22,3 +23,21 @@ def flip_observation_horizontally(obs, image_observations):
         # Merge into single array
         reversed_obs = np.concatenate([agent_pos, ball_pos, ball_dir, opponent_pos])
     return reversed_obs
+
+
+def is_ball_moving_towards_player(obs, player: str):
+    ball_dir_one_hot = obs[4:10]
+    ball_dir_i = np.argmax(ball_dir_one_hot)
+    ball_dir = pong_duel.BALL_DIRECTIONS[ball_dir_i]
+    if player == 'p1':
+        if ball_dir in ['W', 'NW', 'SW']:
+            return True
+        else:
+            return False
+    elif player == 'p2':
+        if ball_dir in ['E', 'NE', 'SE']:
+            return True
+        else:
+            return False
+    else:
+        raise ValueError(f"Argument 'player' can be either 'p1' or 'p2', was {player}")
