@@ -1,11 +1,9 @@
-import copy
-
 import gym
 import torch
 import numpy as np
 
 from src.common.environment_dynamics import approximate_step_pong_duel
-from src.selfplay.ma_gym_compatibility_wrapper import flip_observation_horizontally
+from src.common.observation_utils import flip_observation_horizontally
 
 
 class WhiteBoxAdversarialAgent:

@@ -1,7 +1,7 @@
 import random
 from copy import copy
 
-from src.selfplay.ma_gym_compatibility_wrapper import flip_observation_horizontally
+from src.common.observation_utils import flip_observation_horizontally
 
 
 def test_flip_obs_horiz():
