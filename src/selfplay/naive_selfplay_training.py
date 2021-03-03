@@ -20,6 +20,7 @@ from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 
 from ma_gym.envs.pong_duel import pong_duel
+
 best_models = []
 
 
@@ -32,7 +33,8 @@ def learn_with_selfplay(max_agents,
                         only_rule_based_op=False,
                         patience=5,
                         image_observations=True,
-                        output_folder="output"):
+                        output_folder="output",
+                        fine_tune_on=None):
     # In order to ensure symmetry for the agent when playing on either side, change second agent to red, so both have the same color
     if image_observations:
         pong_duel.AGENT_COLORS[1] = 'red'
@@ -74,6 +76,13 @@ def learn_with_selfplay(max_agents,
         eval_op = SimpleRuleBasedAgent(eval_env_rule_based)
         eval_env_rule_based.set_opponent(eval_op)
 
+    if fine_tune_on is not None:
+        path = Path(output_folder) / 'models' / fine_tune_on
+        fine_tune_model = DQN.load(path, train_env)
+        fine_tune_model.tensorboard_log = None
+    else:
+        fine_tune_model = None
+
     # Initialize first agent
     pre_train_agent = SimpleRuleBasedAgent(train_env_rule_based)
     previous_models = [pre_train_agent]
@@ -106,19 +115,22 @@ def learn_with_selfplay(max_agents,
     opponent_id = last_agent_id
     while opponent_id < max_agents - 1:
         print(f"Running training round {opponent_id + 1}")
-
-        # Choose opponent based on setting
-        if only_rule_based_op:
-            current_train_env = train_env_rule_based
-            # Use rule-based as opponent
-            current_train_env.set_opponent(SimpleRuleBasedAgent(current_train_env))
-        else:
-            if opponent_id == 0:
+        if fine_tune_on is None:
+            # Choose opponent based on setting
+            if only_rule_based_op:
                 current_train_env = train_env_rule_based
+                # Use rule-based as opponent
+                current_train_env.set_opponent(SimpleRuleBasedAgent(current_train_env))
             else:
-                current_train_env = train_env
-            # Take opponent from the previous version of the model
-            current_train_env.set_opponent(previous_models[opponent_id])
+                if opponent_id == 0:
+                    current_train_env = train_env_rule_based
+                else:
+                    current_train_env = train_env
+                # Take opponent from the previous version of the model
+                current_train_env.set_opponent(previous_models[opponent_id])
+        else:  # Use passed fine-tune agent as opponent
+            current_train_env = train_env
+            current_train_env.set_opponent(fine_tune_model)
 
         # Train the model
         current_train_env.set_opponent_right_side(True)
