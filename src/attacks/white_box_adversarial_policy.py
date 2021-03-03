@@ -30,7 +30,7 @@ class WhiteBoxAdversarialAgent:
         # Get the logits when performing forward pass with given observations
         logits = self._victim_q_net_forward(victim_obs)
 
-        victim_action = torch.argmax(logits).item()
+        victim_action = torch.argmax(logits)
         lowest_max = 1
         current_best_action = 0
         for action in range(self.env.action_space.n):
@@ -46,7 +46,7 @@ class WhiteBoxAdversarialAgent:
 
             # Turn the logits into probability distribution
             pred = torch.softmax(logits, dim=0)
-            max = torch.max(pred).item()
+            max = torch.max(pred)
             # We are looking for the action that causes the highest entropy
             # Because pred is a probability distribution that sums up to 1, the action that causes the lowest max value should have the
             # highest entropy
@@ -59,7 +59,7 @@ class WhiteBoxAdversarialAgent:
     def _predict_copy_victim(self, obs):
         # Check the q_net, what would the victim do in this state
         logits = self._victim_q_net_forward(obs)
-        action = torch.argmax(logits).item()
+        action = torch.argmax(logits)
         return action
 
     def _victim_q_net_forward(self, victim_obs: np.ndarray) -> torch.Tensor:
