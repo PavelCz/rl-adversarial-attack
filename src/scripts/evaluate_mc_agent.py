@@ -22,12 +22,12 @@ def main(save_video=False, num_eps=1, render=False, attack=None, save_perturbed_
     # env = ObservationVectorToImage(env, 'both')
     env = ObserveOpponent(env, 'both')
     env = MAGymCompatibilityWrapper(env, image_observations='none')
-    model_dir = 'output/models/'
+    model_dir = '../../output/gcp-models/'
 
     # Models
     op_name = 'gcp-feature-based-op-obs7.out'
 
-    model = WhiteBoxMonteCarloAgent(env)
+    model = WhiteBoxMonteCarloAgent(env, num_sims=10, sim_max_steps=2000)
     op = DQN.load(model_dir + op_name)
     env.set_opponent(op)
     avg_reward, total_steps = evaluate(model, env, attack=attack, slowness=0.05, num_eps=num_eps, render=render,
