@@ -2,6 +2,7 @@ import gym
 from stable_baselines3 import DQN
 
 from src.attacks.white_box_monte_carlo_agent import WhiteBoxMonteCarloAgent
+from src.attacks.white_box_sequence_agent import WhiteBoxSequenceAgent
 from src.common.opponent_wrapper import ObserveOpponent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.naive_selfplay_training import evaluate
