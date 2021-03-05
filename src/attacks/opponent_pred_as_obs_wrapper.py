@@ -26,5 +26,5 @@ class OpponentPredictionObs(gym.ObservationWrapper):
         pred = torch.softmax(logits, dim=0)
 
         # Concatenate these predictions to the original observation
-        return torch.cat([torch.tensor(observation), pred.detach()])
+        return torch.cat([torch.tensor(observation).to(victim_q_net.device), pred.detach()])
 
