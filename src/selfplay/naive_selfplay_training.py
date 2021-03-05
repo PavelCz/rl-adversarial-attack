@@ -14,6 +14,7 @@ from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 from src.agents.random_agent import RandomAgent
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.attacks.fgsm import fgsm_attack_sb3, perturbed_vector_observation
+from src.attacks.opponent_pred_as_obs_wrapper import OpponentPredictionObs
 from src.common.image_wrapper import ObservationVectorToImage
 from src.common.opponent_wrapper import ObserveOpponent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
@@ -34,7 +35,8 @@ def learn_with_selfplay(max_agents,
                         patience=5,
                         image_observations=True,
                         output_folder="output",
-                        fine_tune_on=None):
+                        fine_tune_on=None,
+                        opponent_pred_obs=False):
     # In order to ensure symmetry for the agent when playing on either side, change second agent to red, so both have the same color
     if image_observations:
         pong_duel.AGENT_COLORS[1] = 'red'
@@ -64,6 +66,9 @@ def learn_with_selfplay(max_agents,
         train_env = ObserveOpponent(train_env, 'both')
         train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
         train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='none')
+        if opponent_pred_obs:
+            train_env = OpponentPredictionObs(train_env)
+
         train_env = Monitor(train_env)
 
         eval_env = gym.make('PongDuel-v0')
@@ -78,8 +83,16 @@ def learn_with_selfplay(max_agents,
 
     if fine_tune_on is not None:
         path = Path(output_folder) / 'models' / fine_tune_on
-        fine_tune_model = DQN.load(path, train_env)
+        fine_tune_model = DQN.load(path)
         fine_tune_model.tensorboard_log = None
+        if opponent_pred_obs:
+            # We can't eval on agents that doesn't have a q_net so we change eval to the original model that is being
+            # fine-tuned against, instead of the rule-based agent
+            eval_op = fine_tune_model
+            eval_env_rule_based.set_opponent(eval_op)
+            eval_env_rule_based = OpponentPredictionObs(eval_env_rule_based)
+            eval_env.set_opponent(eval_op)
+            eval_env = OpponentPredictionObs(eval_env)
     else:
         fine_tune_model = None
 
@@ -174,8 +187,9 @@ def learn_with_selfplay(max_agents,
 
             # Opponent does not change
 
-    # Evaluate the last model against each of its previous iterations
-    _evaluate_against_predecessors(previous_models, env_rule_based=eval_env_rule_based, env_normal=eval_env, num_eval_eps=num_eval_eps)
+    if not opponent_pred_obs:
+        # Evaluate the last model against each of its previous iterations
+        _evaluate_against_predecessors(previous_models, env_rule_based=eval_env_rule_based, env_normal=eval_env, num_eval_eps=num_eval_eps)
 
 
 def _make_model_path(output_path, model_name: str, i: int):

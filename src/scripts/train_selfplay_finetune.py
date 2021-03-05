@@ -5,8 +5,8 @@ from src.selfplay.naive_selfplay_training import learn_with_selfplay
 
 def main():
     # Settings for training and evaluation
-    max_agents = 1
-    num_eval_eps = 1
+    max_agents = 3
+    num_eval_eps = 100
     num_learn_steps = 1_000_000
     num_learn_steps_pre_training = 1_000_000  # pre-training is done only against rule-based opponent
     only_rule_based_opponent = False  # True forces play against rule_based, i.e. no self-play
@@ -14,7 +14,7 @@ def main():
     image_observations = False
     output_folder = "output"
 
-    model_name = 'gcp-fine-tuned'
+    model_name = 'model-pred-finetune'
 
     fine_tune_on = 'gcp-feature-based-op-obs7.out'
 
@@ -28,7 +28,8 @@ def main():
                         patience=patience,
                         image_observations=image_observations,
                         output_folder=output_folder,
-                        fine_tune_on=fine_tune_on)
+                        fine_tune_on=fine_tune_on,
+                        opponent_pred_obs=True)
 
 
 if __name__ == '__main__':
