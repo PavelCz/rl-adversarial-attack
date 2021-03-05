@@ -27,5 +27,5 @@ class OpponentPredictionObs(gym.ObservationWrapper):
         pred = torch.softmax(logits, dim=0)
 
         # Concatenate these predictions to the original observation
-        return np.concatenate([observation, pred.detach().numpy()])
+        return np.concatenate([observation, pred.detach().cpu().numpy()])
 
