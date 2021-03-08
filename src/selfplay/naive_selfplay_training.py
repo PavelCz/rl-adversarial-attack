@@ -198,11 +198,13 @@ def _make_model_path(output_path, model_name: str, i: int):
 
 
 def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img=False, print_obs=False, verbose=False, attack=None,
-             img_obs=True):
+             img_obs=True, return_infos=False):
     env.set_opponent_right_side(True)
     total_reward = 0
     total_rounds = 0
     total_steps = 0
+    if return_infos:
+        infos = {}
     for episode in tqdm(range(num_eps), desc='Evaluating...'):
         ep_reward = 0
         # Evaluate the agent
@@ -230,10 +232,20 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img
                 print('\r', *obs, end="")
         total_reward += ep_reward
         total_rounds += info['rounds']
+        if return_infos:
+            for key in info:
+                if key not in infos:
+                    infos[key] = info[key]
+                else:
+                    infos[key] += info[key]
     env.close()
 
     avg_round_reward = total_reward / total_rounds
-    return avg_round_reward, total_steps
+
+    if return_infos:
+        return avg_round_reward, total_steps, infos
+    else:
+        return avg_round_reward, total_steps
 
 
 def _evaluate_against_predecessors(previous_models, env_rule_based, env_normal, num_eval_eps):
