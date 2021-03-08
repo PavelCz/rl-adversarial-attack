@@ -13,7 +13,7 @@ from ma_gym.wrappers import Monitor
 from ma_gym.envs.pong_duel import pong_duel
 
 
-def main(save_video=False, num_eps=100, render=False, attack=None, save_perturbed_img=False):
+def main(save_video=False, num_eps=1, render=True, attack=None, save_perturbed_img=False):
     # Initialize environment
     env = gym.make('PongDuel-v0')
     if save_video:
@@ -21,14 +21,14 @@ def main(save_video=False, num_eps=100, render=False, attack=None, save_perturbe
     # env = RewardZeroToNegativeBiAgentWrapper(env)
     env = ObserveOpponent(env, 'both')
     env = MAGymCompatibilityWrapper(env, image_observations='none')
-    model_dir = '../../output/models/'
+    model_dir = '../../output/gcp-models/'
 
     # Models
-    agent_name = "new-feature-based3.out"
+    agent_name = "gcp-feature-based-op-obs7.out"
 
     victim = DQN.load(model_dir + agent_name)
 
-    adv = WhiteBoxAdversarialAgent(env, victim)
+    adv = WhiteBoxAdversarialAgent(env, victim, victim_type='sb3')
 
     env.set_opponent(victim)
     avg_reward, _ = evaluate(adv, env, attack=attack, slowness=0.05, num_eps=num_eps, render=render,
