@@ -1,19 +1,12 @@
 import os
 import copy
-import time
 from pathlib import Path
 
 import gym
-import ma_gym  # Necessary so the PongDuel env exists
-import numpy as np
-from tqdm import tqdm
-from stable_baselines3 import PPO, DQN, A2C
+from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 
-from src.agents.random_agent import RandomAgent
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
-from src.attacks.fgsm import fgsm_attack_sb3, perturbed_vector_observation
 from src.attacks.opponent_pred_as_obs_wrapper import OpponentPredictionObs
 from src.common.image_wrapper import ObservationVectorToImage
 from src.common.opponent_wrapper import ObserveOpponent
@@ -21,6 +14,8 @@ from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
 from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 
 from ma_gym.envs.pong_duel import pong_duel
+
+from src.selfplay.naive_selfplay_evaluation import evaluate, evaluate_against_predecessors
 
 best_models = []
 
@@ -189,7 +184,7 @@ def learn_with_selfplay(max_agents,
 
     if not opponent_pred_obs:
         # Evaluate the last model against each of its previous iterations
-        _evaluate_against_predecessors(previous_models, env_rule_based=eval_env_rule_based, env_normal=eval_env, num_eval_eps=num_eval_eps)
+        evaluate_against_predecessors(previous_models, env_rule_based=eval_env_rule_based, env_normal=eval_env, num_eval_eps=num_eval_eps)
 
 
 def _make_model_path(output_path, model_name: str, i: int):
@@ -197,67 +192,3 @@ def _make_model_path(output_path, model_name: str, i: int):
     return model_dir / (model_name + str(i) + '.out')
 
 
-def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img=False, print_obs=False, verbose=False, attack=None,
-             img_obs=True, return_infos=False):
-    env.set_opponent_right_side(True)
-    total_reward = 0
-    total_rounds = 0
-    total_steps = 0
-    if return_infos:
-        infos = {}
-    for episode in tqdm(range(num_eps), desc='Evaluating...'):
-        ep_reward = 0
-        # Evaluate the agent
-        done = False
-        obs = env.reset()
-        info = None
-        while not done:
-            if attack == "fgsm":
-                # Perturb observation
-                obs = fgsm_attack_sb3(obs, model, 0.1, img_obs=img_obs)
-            if render:
-                time.sleep(slowness)
-                if save_perturbed_img:
-                    perturbed_vector_observation(env.render(mode='rgb_array'), obs)
-                env.render()
-            action, _states = model.predict(obs, deterministic=False)
-            if verbose:
-                print(action)
-            obs, reward, done, info = env.step(action)
-            total_steps += 1
-
-            # print(reward)
-            ep_reward += reward
-            if print_obs:
-                print('\r', *obs, end="")
-        total_reward += ep_reward
-        total_rounds += info['rounds']
-        if return_infos:
-            for key in info:
-                if key not in infos:
-                    infos[key] = info[key]
-                else:
-                    infos[key] += info[key]
-    env.close()
-
-    avg_round_reward = total_reward / total_rounds
-
-    if return_infos:
-        return avg_round_reward, total_steps, infos
-    else:
-        return avg_round_reward, total_steps
-
-
-def _evaluate_against_predecessors(previous_models, env_rule_based, env_normal, num_eval_eps):
-    print(f"Evaluating against predecessors...")
-    last_model = previous_models[-1]
-    last_model_index = len(previous_models) - 1
-    for i, model in enumerate(previous_models):
-        if i == 0:
-            env = env_rule_based
-        else:
-            env = env_normal
-        env.set_opponent(model)
-        avg_round_reward, num_steps = evaluate(last_model, env, num_eps=num_eval_eps)
-        print(f"Model {last_model_index} against {i}: {avg_round_reward}")
-        print(f"Average number of steps: {num_steps / num_eval_eps}")
