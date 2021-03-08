@@ -6,7 +6,7 @@ import os
 import random
 
 from time import sleep
-from stable_baselines3 import PPO
+import stable_baselines3 as sb3
 
 from src.common.utils import load_model
 from src.selfplay.model import DQN, Policy
@@ -22,8 +22,15 @@ def test(env, args):
     p1_policy.eval(), p2_policy.eval()
     load_model(models={"p1": p1_current_model, "p2": p2_current_model},
                policies={"p1": p1_policy, "p2": p2_policy}, args=args)
-    if args.adv_policy:
-        adversary = PPO.load("adversary")
+    if args.policy_attack:
+        if args.policy_attack == 'p1':
+            print("Load agent 2 adversary")
+            adversary = sb3.DQN.load("adversary_p2")
+        elif args.policy_attack == 'p2':
+            print("Load agent 1 adversary")
+            adversary = sb3.DQN.load("adversary_p1_bounce")
+        else:
+            raise AssertionError ("Argument takes value \"p1\" or \"p2\" but received {}".format(args.policy_attack))
     p1_reward_list = []
     p2_reward_list = []
     length_list = []
@@ -34,6 +41,7 @@ def test(env, args):
         p1_episode_reward = 0
         p2_episode_reward = 0
         episode_length = 0
+        reward = [0,0]
         while True:
             if args.render:
                 env.render()
@@ -52,12 +60,23 @@ def test(env, args):
                 else:
                     raise AssertionError ("Argument takes value \"p1\" or \"p2\" but received {}".format(args.fgsm))
             
-            if args.adv_policy:
-                if args.adv_policy == 'p1':
+            if args.policy_attack:
+                ball_dir = np.nonzero(p1_state[4:10])[0]
+                if args.policy_attack == 'p1':
                     p2_action, _states = adversary.predict(p2_state)
-                elif args.adv_policy == 'p2':
-                    p1_action, _states = adversary.predict(p1_state)
-            # Random Action Agent
+                    if isinstance(p2_action, list) or isinstance(p2_action, np.ndarray):
+                        p2_action = p2_action[0]
+                else:
+                    # p1_action, _states = adversary.predict(p1_state)
+                    # if isinstance(p1_action, list) or isinstance(p1_action, np.ndarray):
+                    #     p1_action = p1_action[0]
+                    if ball_dir in [0,1,2]:
+                        p1_action = p1_policy.act(torch.tensor(p1_state).to(args.device))
+                    if ball_dir in [3,4,5]:
+                        p1_action, _states = adversary.predict(p1_state)
+                        if isinstance(p1_action, list) or isinstance(p1_action, np.ndarray):
+                            p1_action = p1_action[0]
+            # # Random Action Agent
             # p1_action = env.action_space.sample()[0]
             # p2_action = env.action_space.sample()[1]
 
@@ -68,13 +87,6 @@ def test(env, args):
             # NFSP Agent
             # p1_action = p1_policy.act(torch.tensor(p1_state).to(args.device))
             p2_action = p2_policy.act(torch.tensor(p2_state).to(args.device))
-
-            # if random.random() > args.eta:
-            #     p1_action = p1_policy.act(torch.tensor(p1_state).to(args.device))
-            #     p2_action = p2_policy.act(torch.tensor(p1_state).to(args.device))
-            # else:
-            #     p1_action = p1_current_model.act(torch.tensor(p1_state).to(args.device), 0)
-            #     p2_action = p2_current_model.act(torch.tensor(p2_state).to(args.device), 0)
 
             actions = [p1_action, p2_action]
             next_state, reward, done, info = env.step(actions)
