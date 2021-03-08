@@ -32,50 +32,11 @@ def learn_with_selfplay(max_agents,
                         output_folder="output",
                         fine_tune_on=None,
                         opponent_pred_obs=False):
-    # In order to ensure symmetry for the agent when playing on either side, change second agent to red, so both have the same color
-    if image_observations:
-        pong_duel.AGENT_COLORS[1] = 'red'
-        # Initialize environment
-        train_env = gym.make('PongDuel-v0')
-        train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
 
-        train_env_rule_based = ObservationVectorToImage(train_env, 'p1')
-        train_env_rule_based = MAGymCompatibilityWrapper(train_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
-        train_env_rule_based = Monitor(train_env_rule_based)
+    eval_env, eval_env_rule_based, eval_op, train_env, train_env_rule_based = _init_envs(image_observations, num_skip_steps,
+                                                                                         opponent_pred_obs)
 
-        train_env = ObservationVectorToImage(train_env, 'both')
-        train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='both')
-        train_env = Monitor(train_env)
-
-        eval_env_rule_based = gym.make('PongDuel-v0')
-        eval_env_rule_based = ObservationVectorToImage(eval_env_rule_based, 'p1')
-        eval_env_rule_based = MAGymCompatibilityWrapper(eval_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
-        eval_op = SimpleRuleBasedAgent(eval_env_rule_based)
-        eval_env_rule_based.set_opponent(eval_op)
-
-        eval_env = gym.make('PongDuel-v0')
-        eval_env = ObservationVectorToImage(eval_env, 'both')
-        eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps, image_observations='both')
-    else:  # Init for feature observations
-        train_env = gym.make('PongDuel-v0')
-        train_env = ObserveOpponent(train_env, 'both')
-        train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
-        train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='none')
-        if opponent_pred_obs:
-            train_env = OpponentPredictionObs(train_env)
-
-        train_env = Monitor(train_env)
-
-        eval_env = gym.make('PongDuel-v0')
-        eval_env = ObserveOpponent(eval_env, 'both')
-        eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps, image_observations='none')
-
-        # For feature observations we don't need to separate between environment for rule-based and non-rule-based agents
-        train_env_rule_based = train_env
-        eval_env_rule_based = eval_env
-        eval_op = SimpleRuleBasedAgent(eval_env_rule_based)
-        eval_env_rule_based.set_opponent(eval_op)
-
+    # If fine tuning, load model to fine-tune from path
     if fine_tune_on is not None:
         path = Path(output_folder) / 'models' / fine_tune_on
         fine_tune_model = DQN.load(path)
@@ -185,6 +146,54 @@ def learn_with_selfplay(max_agents,
     if not opponent_pred_obs:
         # Evaluate the last model against each of its previous iterations
         evaluate_against_predecessors(previous_models, env_rule_based=eval_env_rule_based, env_normal=eval_env, num_eval_eps=num_eval_eps)
+
+
+def _init_envs(image_observations, num_skip_steps, opponent_pred_obs):
+    # In order to ensure symmetry for the agent when playing on either side, change second agent to red, so both have the same color
+    if image_observations:
+        pong_duel.AGENT_COLORS[1] = 'red'
+        # Initialize environment
+        train_env = gym.make('PongDuel-v0')
+        train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
+
+        train_env_rule_based = ObservationVectorToImage(train_env, 'p1')
+        train_env_rule_based = MAGymCompatibilityWrapper(train_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
+        train_env_rule_based = Monitor(train_env_rule_based)
+
+        train_env = ObservationVectorToImage(train_env, 'both')
+        train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='both')
+        train_env = Monitor(train_env)
+
+        eval_env_rule_based = gym.make('PongDuel-v0')
+        eval_env_rule_based = ObservationVectorToImage(eval_env_rule_based, 'p1')
+        eval_env_rule_based = MAGymCompatibilityWrapper(eval_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
+        eval_op = SimpleRuleBasedAgent(eval_env_rule_based)
+        eval_env_rule_based.set_opponent(eval_op)
+
+        eval_env = gym.make('PongDuel-v0')
+        eval_env = ObservationVectorToImage(eval_env, 'both')
+        eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps, image_observations='both')
+    else:  # Init for feature observations
+        train_env = gym.make('PongDuel-v0')
+        train_env = ObserveOpponent(train_env, 'both')
+        train_env = RewardZeroToNegativeBiAgentWrapper(train_env)
+        train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='none')
+        if opponent_pred_obs:
+            train_env = OpponentPredictionObs(train_env)
+
+        train_env = Monitor(train_env)
+
+        eval_env = gym.make('PongDuel-v0')
+        eval_env = ObserveOpponent(eval_env, 'both')
+        eval_env = MAGymCompatibilityWrapper(eval_env, num_skip_steps=num_skip_steps, image_observations='none')
+
+        # For feature observations we don't need to separate between environment for rule-based and non-rule-based agents
+        train_env_rule_based = train_env
+        eval_env_rule_based = eval_env
+        eval_op = SimpleRuleBasedAgent(eval_env_rule_based)
+        eval_env_rule_based.set_opponent(eval_op)
+        
+    return eval_env, eval_env_rule_based, eval_op, train_env, train_env_rule_based
 
 
 def _make_model_path(output_path, model_name: str, i: int):
