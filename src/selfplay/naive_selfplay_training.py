@@ -8,6 +8,7 @@ from stable_baselines3.common.monitor import Monitor
 
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.attacks.opponent_pred_as_obs_wrapper import OpponentPredictionObs
+from src.common.AdversarialTrainingWrapper import AdversarialTrainingWrapper
 from src.common.image_wrapper import ObservationVectorToImage
 from src.common.opponent_wrapper import ObserveOpponent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
@@ -31,10 +32,12 @@ def learn_with_selfplay(max_agents,
                         image_observations=True,
                         output_folder="output",
                         fine_tune_on=None,
-                        opponent_pred_obs=False):
-
-    eval_env, eval_env_rule_based, eval_op, train_env, train_env_rule_based = _init_envs(image_observations, num_skip_steps,
-                                                                                         opponent_pred_obs)
+                        opponent_pred_obs=False,
+                        adversarial_training=None):
+    eval_env, eval_env_rule_based, eval_op, train_env, train_env_rule_based = _init_envs(image_observations,
+                                                                                         num_skip_steps,
+                                                                                         opponent_pred_obs,
+                                                                                         adversarial_training)
 
     # If fine tuning, load model to fine-tune from path
     if fine_tune_on is not None:
@@ -105,6 +108,12 @@ def learn_with_selfplay(max_agents,
         current_train_env.set_opponent_right_side(True)
 
         chosen_n_steps = num_learn_steps_pre_training if opponent_id == 0 else num_learn_steps  # Iteration 0 is pre-training
+
+        # In order to generate adversarial examples the adversarial training wrapper needs a references to the model that is
+        # currently being trained
+        if adversarial_training is not None:
+            current_train_env.env.victim_model = main_model
+
         main_model.learn(total_timesteps=chosen_n_steps, tb_log_name=model_name)  # , callback=learn_callback)
 
         # Do evaluation for this training round
@@ -148,7 +157,7 @@ def learn_with_selfplay(max_agents,
         evaluate_against_predecessors(previous_models, env_rule_based=eval_env_rule_based, env_normal=eval_env, num_eval_eps=num_eval_eps)
 
 
-def _init_envs(image_observations, num_skip_steps, opponent_pred_obs):
+def _init_envs(image_observations, num_skip_steps, opponent_pred_obs, adversarial_training):
     # In order to ensure symmetry for the agent when playing on either side, change second agent to red, so both have the same color
     if image_observations:
         pong_duel.AGENT_COLORS[1] = 'red'
@@ -158,10 +167,20 @@ def _init_envs(image_observations, num_skip_steps, opponent_pred_obs):
 
         train_env_rule_based = ObservationVectorToImage(train_env, 'p1')
         train_env_rule_based = MAGymCompatibilityWrapper(train_env_rule_based, num_skip_steps=num_skip_steps, image_observations='main')
+
+        if adversarial_training is not None:
+            train_env_rule_based = AdversarialTrainingWrapper(train_env_rule_based,
+                                                              adversarial_probability=adversarial_training,
+                                                              img_obs=image_observations)
         train_env_rule_based = Monitor(train_env_rule_based)
 
         train_env = ObservationVectorToImage(train_env, 'both')
         train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='both')
+
+        if adversarial_training is not None:
+            train_env = AdversarialTrainingWrapper(train_env,
+                                                   adversarial_probability=adversarial_training,
+                                                   img_obs=image_observations)
         train_env = Monitor(train_env)
 
         eval_env_rule_based = gym.make('PongDuel-v0')
@@ -180,7 +199,10 @@ def _init_envs(image_observations, num_skip_steps, opponent_pred_obs):
         train_env = MAGymCompatibilityWrapper(train_env, num_skip_steps=num_skip_steps, image_observations='none')
         if opponent_pred_obs:
             train_env = OpponentPredictionObs(train_env)
-
+        if adversarial_training is not None:
+            train_env = AdversarialTrainingWrapper(train_env,
+                                                   adversarial_probability=adversarial_training,
+                                                   img_obs=image_observations)
         train_env = Monitor(train_env)
 
         eval_env = gym.make('PongDuel-v0')
@@ -192,12 +214,10 @@ def _init_envs(image_observations, num_skip_steps, opponent_pred_obs):
         eval_env_rule_based = eval_env
         eval_op = SimpleRuleBasedAgent(eval_env_rule_based)
         eval_env_rule_based.set_opponent(eval_op)
-        
+
     return eval_env, eval_env_rule_based, eval_op, train_env, train_env_rule_based
 
 
 def _make_model_path(output_path, model_name: str, i: int):
     model_dir = Path(output_path) / 'models'
     return model_dir / (model_name + str(i) + '.out')
-
-
