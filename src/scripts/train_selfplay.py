@@ -10,9 +10,9 @@ def main():
     patience = 20
     image_observations = False
     output_folder = "output"
-    adversarial_training = None
+    adversarial_training = True
 
-    model_name = 'gcp-feature-based-op-obs'
+    model_name = 'adv-trainedA'
 
     print(f'Running training for model {model_name}')
     learn_with_selfplay(max_agents=max_agents,
