@@ -57,7 +57,9 @@ def main():
                                       num_eps=num_eps // 2,
                                       return_infos=True)
 
-    avg_reward = (avg_reward1 + avg_reward2) / 2
+    # Calculate the reward for player 1
+    # Because player 1 and 2 are switched in the second evaluation, we the inverse is the reward for p1
+    avg_reward = (avg_reward1 + (1 - avg_reward2)) / 2
 
     p1_hits = infos1['p1_ball_hits'] + infos2['p2_ball_hits']
     p1_ball_receives = infos1['ball_moved_towards_p1'] + infos2['ball_moved_towards_p2']
