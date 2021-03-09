@@ -11,7 +11,7 @@ def main():
     image_observations = False
     output_folder = "output"
 
-    model_name = 'adversarial-train-feature-obs'
+    model_name = 'adversarial-train'
 
     print(f'Running training for model {model_name}')
     learn_with_selfplay(max_agents=max_agents,

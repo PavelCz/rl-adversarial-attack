@@ -61,7 +61,7 @@ def fgsm_attack_sb3(obs, model, epsilon, img_obs):
     if not img_obs:
         # If we are using vector and not image observations perturb only agent position and ball position, leave ball direction
         # (which is one-hot) as before
-        perturbed_obs = torch.cat((perturbed_obs[:4], obs[4:]))
+        perturbed_obs = torch.cat((perturbed_obs[:4], obs[4:10], perturbed_obs[10:]))
     return perturbed_obs.detach().cpu().numpy()
 
 
