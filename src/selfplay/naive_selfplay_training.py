@@ -5,6 +5,7 @@ from pathlib import Path
 import gym
 from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.callbacks import CheckpointCallback
 
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.attacks.opponent_pred_as_obs_wrapper import OpponentPredictionObs
@@ -33,7 +34,8 @@ def learn_with_selfplay(max_agents,
                         output_folder="output",
                         fine_tune_on=None,
                         opponent_pred_obs=False,
-                        adversarial_training=None):
+                        adversarial_training=None,
+                        save_freq=None):
     eval_env, eval_env_rule_based, eval_op, train_env, train_env_rule_based = _init_envs(image_observations,
                                                                                          num_skip_steps,
                                                                                          opponent_pred_obs,
@@ -114,7 +116,16 @@ def learn_with_selfplay(max_agents,
         if adversarial_training is not None:
             current_train_env.env.victim_model = main_model
 
-        main_model.learn(total_timesteps=chosen_n_steps, tb_log_name=model_name)  # , callback=learn_callback)
+        # Optionally add a callback to save intermediate checkpoints
+        if save_freq is not None:
+            checkpoint_callback = CheckpointCallback(save_freq=save_freq,
+                                                     save_path='./output/intermediate/',
+                                                     name_prefix=model_name + str(opponent_id + 1) + '_interm')
+        else:
+            checkpoint_callback = None
+
+        # === LEARNING ===
+        main_model.learn(total_timesteps=chosen_n_steps, tb_log_name=model_name, callback=checkpoint_callback)
 
         # Do evaluation for this training round
         eval_env_rule_based.set_opponent(eval_op)
