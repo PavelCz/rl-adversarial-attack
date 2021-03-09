@@ -19,5 +19,5 @@ class AdversarialTrainingWrapper(gym.ObservationWrapper):
 
     def observation(self, observation):
         if random.random() < self.adversarial_probability:  # Perform adversarial perturbation with given probability
-            observation = fgsm_attack_sb3(observation, self.victim_model, 0.1, img_obs=self.img_obs)
+            observation = fgsm_attack_sb3(observation, self.victim_model, 0.02, img_obs=self.img_obs)
         return observation
