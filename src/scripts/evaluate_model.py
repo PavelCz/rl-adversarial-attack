@@ -19,10 +19,10 @@ def main():
     pong_duel.AGENT_COLORS[1] = 'red'
 
     model_dir = '../../output/models/'
-    num_eps = 100
+    num_eps = 200
     attack = None
 
-    agent_name = "finetuneA_22.out"
+    agent_name = "finetuneA2.out"
     op_name = 'models/gcp-feature-based-op-obs7.out'
     # agent_name = 'gcp-feature-based-op-obs6.out'
     # op_name = 'gcp-feature-based-op-obs6.out'
