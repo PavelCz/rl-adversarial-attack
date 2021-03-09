@@ -5,7 +5,7 @@ from tqdm import tqdm
 from src.attacks.fgsm import fgsm_attack_sb3, perturbed_vector_observation
 
 
-def evaluate(model, env, num_eps, slowness=0.05, render=False, save_perturbed_img=False, attack=None,
+def evaluate(model, env, num_eps: int, slowness=0.05, render=False, save_perturbed_img=False, attack=None,
              img_obs=False, return_infos=False):
     env.set_opponent_right_side(True)
     total_reward = 0
