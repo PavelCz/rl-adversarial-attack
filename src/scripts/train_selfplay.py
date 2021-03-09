@@ -12,7 +12,7 @@ def main():
     output_folder = "output"
     adversarial_training = None
 
-    model_name = 'modelA+'
+    model_name = 'gcp-feature-based-op-obs'
 
     print(f'Running training for model {model_name}')
     learn_with_selfplay(max_agents=max_agents,
