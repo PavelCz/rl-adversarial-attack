@@ -1,31 +1,34 @@
 import gym
 import numpy as np
 
-from stable_baselines3 import PPO
-from stable_baselines3.ppo import MlpPolicy
+import stable_baselines3 as sb3
 from src.common.stable_baselines_wrapper import StableBaselinesWrapper
 
 from src.common.utils import load_model_single
 from src.selfplay.model import DQN, Policy
+from time import sleep
 
 def train_adversarial_policy(env, args):
     # Load victim model
-    if args.adv_policy == 'p1' or args.adv_policy == 'p2':
-        victim_model = DQN(env, args, args.adv_policy).to(args.device)
-        victim_policy = Policy(env, args, args.adv_policy).to(args.device)
+    if args.policy_attack == 'p1' or args.policy_attack == 'p2':
+        victim_model = DQN(env, args, args.policy_attack).to(args.device)
+        victim_policy = Policy(env, args, args.policy_attack).to(args.device)
         victim_model.eval(); victim_policy.eval()
-        load_model_single(victim_model, victim_policy, args, args.adv_policy)
+        load_model_single(victim_model, victim_policy, args, args.policy_attack)
     else:
-        raise AssertionError ("Argument takes value \"p1\" or \"p2\" but received {}".format(args.adv_policy))
+        raise AssertionError ("Argument takes value \"p1\" or \"p2\" but received {}".format(args.policy_attack))
     
-    env = StableBaselinesWrapper(env, args.adv_policy, victim_policy)
+    env = StableBaselinesWrapper(env, args.policy_attack, victim_policy)
     # Load adversary model
-    model = PPO(MlpPolicy, env, verbose=1)
-    # model.learn(total_timesteps=args.max_frames + 1)
-    model.learn(total_timesteps=args.max_frames+1)
+    model = sb3.DQN('MlpPolicy', env, verbose=1)
+    model.learn(total_timesteps=args.max_frames + 1)
 
-    model.save("adversary")
-
+    if args.policy_attack == 'p1':
+        model.save("adversary_p2")
+    else:
+        model.save("adversary_p1_bounce")
+    # model = sb3.DQN.load("adversary_p1")
+    model.set_env(env)
     adv_reward_list = []
     length_list = []
     for _ in range(10):

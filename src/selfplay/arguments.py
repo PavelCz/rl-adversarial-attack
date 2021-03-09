@@ -5,7 +5,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='DQN')
 
     # Basic Arguments
-    parser.add_argument('--seed', type=int, default=1122,
+    parser.add_argument('--seed', type=int, default=1122    ,
                         help='Random seed')
     parser.add_argument('--batch-size', type=int, default=128,
                         help='Batch size')
@@ -15,7 +15,7 @@ def get_args():
     # Training Arguments
     parser.add_argument('--max-frames', type=int, default=1500000,
                         help='Number of frames to train')
-    parser.add_argument('--buffer-size', type=int, default=100000,
+    parser.add_argument('--buffer-size', type=int, default=50000,
                         help='Maximum memory buffer size')
     parser.add_argument('--update-target', type=int, default=1000,
                         help='Interval of target network update')
@@ -65,7 +65,7 @@ def get_args():
                         help='Select p1 or p2 to attack with Fast Gradient Sign Method(FGSM)')
     parser.add_argument('--plot_fgsm', action='store_true',
                         help='Visualize perturbbed state')
-    parser.add_argument('--adv_policy', type=str, default=None,
+    parser.add_argument('--policy_attack', type=str, default=None,
                         help='Select p1 or p2 to attack by an adversary trained with adversarial policy')
 
     # Optimization Arguments
