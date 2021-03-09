@@ -28,7 +28,7 @@ def evaluate(model, env, num_eps: int, slowness=0.05, render=False, save_perturb
                 if save_perturbed_img:
                     perturbed_vector_observation(env.render(mode='rgb_array'), obs)
                 env.render()
-            action, _states = model.predict(obs, deterministic=False)
+            action, _states = model.predict(obs, deterministic=True)
             obs, reward, done, info = env.step(action)
             total_steps += 1
 

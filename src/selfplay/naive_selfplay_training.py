@@ -36,6 +36,27 @@ def learn_with_selfplay(max_agents,
                         opponent_pred_obs=False,
                         adversarial_training=None,
                         save_freq=None):
+    """
+
+    :param max_agents:
+    :param num_learn_steps:
+    :param num_learn_steps_pre_training:
+    :param num_eval_eps:
+    :param num_skip_steps:
+    :param model_name:
+    :param only_rule_based_op:
+    :param patience:
+    :param image_observations:
+    :param output_folder:
+    :param fine_tune_on:
+    :param opponent_pred_obs:
+        If this is set to True, the predictions of the opponents in the current state will beconcatenated to the observations for the main
+        agent. This was an attempt to create a stronger adversarial policy, which could use this information, however in our experiments
+        this didn't improve the adversarial policy
+    :param adversarial_training:
+    :param save_freq:
+    :return:
+    """
     eval_env, eval_env_rule_based, eval_op, train_env, train_env_rule_based = _init_envs(image_observations,
                                                                                          num_skip_steps,
                                                                                          opponent_pred_obs,
@@ -47,7 +68,7 @@ def learn_with_selfplay(max_agents,
         fine_tune_model = DQN.load(path)
         fine_tune_model.tensorboard_log = None
         if opponent_pred_obs:
-            # We can't eval on agents that doesn't have a q_net so we change eval to the original model that is being
+            # We can't eval on agents that don't have a q_net so we change eval_op to the original model that is being
             # fine-tuned against, instead of the rule-based agent
             eval_op = fine_tune_model
             eval_env_rule_based.set_opponent(eval_op)

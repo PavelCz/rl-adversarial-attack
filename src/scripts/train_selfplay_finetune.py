@@ -14,7 +14,7 @@ def main():
     image_observations = False
     output_folder = "output"
 
-    model_name = 'finetuneA_2'
+    model_name = 'finetuneA'
 
     fine_tune_on = 'gcp-feature-based-op-obs7.out'
 
@@ -29,8 +29,7 @@ def main():
                         image_observations=image_observations,
                         output_folder=output_folder,
                         fine_tune_on=fine_tune_on,
-                        opponent_pred_obs=True,
-                        save_freq=1000)
+                        save_freq=100000)
 
 
 if __name__ == '__main__':
