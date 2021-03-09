@@ -31,7 +31,7 @@ def main(save_video=False, num_eps=1, render=False, attack=None, save_perturbed_
     op = DQN.load(model_dir + op_name)
     env.set_opponent(op)
     avg_reward, total_steps = evaluate(model, env, attack=attack, slowness=0.05, num_eps=num_eps, render=render,
-                                       save_perturbed_img=save_perturbed_img, print_obs=False, verbose=False, img_obs=False)
+                                       save_perturbed_img=save_perturbed_img)
     print(avg_reward)
     print(total_steps)
 

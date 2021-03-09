@@ -32,7 +32,7 @@ def main(save_video=False, num_eps=1, render=True, attack=None, save_perturbed_i
 
     env.set_opponent(victim)
     avg_reward, _ = evaluate(adv, env, attack=attack, slowness=0.05, num_eps=num_eps, render=render,
-                             save_perturbed_img=save_perturbed_img, print_obs=False, verbose=False, img_obs=False)
+                             save_perturbed_img=save_perturbed_img, )
     print(avg_reward)
 
 

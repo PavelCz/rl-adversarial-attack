@@ -5,8 +5,8 @@ from tqdm import tqdm
 from src.attacks.fgsm import fgsm_attack_sb3, perturbed_vector_observation
 
 
-def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img=False, print_obs=False, verbose=False, attack=None,
-             img_obs=True, return_infos=False):
+def evaluate(model, env, num_eps, slowness=0.05, render=False, save_perturbed_img=False, attack=None,
+             img_obs=False, return_infos=False):
     env.set_opponent_right_side(True)
     total_reward = 0
     total_rounds = 0
@@ -29,15 +29,11 @@ def evaluate(model, env, num_eps, slowness=0.1, render=False, save_perturbed_img
                     perturbed_vector_observation(env.render(mode='rgb_array'), obs)
                 env.render()
             action, _states = model.predict(obs, deterministic=False)
-            if verbose:
-                print(action)
             obs, reward, done, info = env.step(action)
             total_steps += 1
 
             # print(reward)
             ep_reward += reward
-            if print_obs:
-                print('\r', *obs, end="")
         total_reward += ep_reward
         total_rounds += info['rounds']
         if return_infos:

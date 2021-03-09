@@ -14,7 +14,7 @@ from ma_gym.wrappers import Monitor
 from ma_gym.envs.pong_duel import pong_duel
 
 
-def main(save_video=False, num_eps=50, render=False, attack=None, save_perturbed_img=False):
+def main(save_video=False, num_eps=1, render=True, attack=None):
     pong_duel.AGENT_COLORS[1] = 'red'
     # Initialize environment
     env = gym.make('PongDuel-v0')
@@ -26,10 +26,10 @@ def main(save_video=False, num_eps=50, render=False, attack=None, save_perturbed
     env = ObserveOpponent(env, 'both')
     env = MAGymCompatibilityWrapper(env, image_observations='none')
     # env = OpponentPredictionObs(env)
-    model_dir = '../../output/models/models/'
+    model_dir = '../../output/models/'
 
     # Models
-    agent_name = "gcp-fine-tuned2.out"
+    agent_name = "train-feature-obs-fewer-steps8.out"
     # agent_name = 'gcp-feature-based-op-obs6.out'
 
     #op_name = 'gcp-feature-based-op-obs6.out'
@@ -40,8 +40,12 @@ def main(save_video=False, num_eps=50, render=False, attack=None, save_perturbed
     op = SimpleRuleBasedAgent(env)
     # op = DQN.load(model_dir + op_name)
     env.set_opponent(op)
-    avg_reward, total_steps, infos = evaluate(model, env, attack=attack, slowness=0.05, num_eps=num_eps, render=render,
-                             save_perturbed_img=save_perturbed_img, print_obs=False, verbose=False, img_obs=False, return_infos=True)
+    avg_reward, total_steps, infos = evaluate(model,
+                                              env,
+                                              attack=attack,
+                                              num_eps=num_eps,
+                                              render=render,
+                                              return_infos=True)
     print(avg_reward)
     print(total_steps)
     print(infos)
