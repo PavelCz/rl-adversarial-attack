@@ -80,7 +80,11 @@ def main():
 
 def _make_agents(env, model_dir, agent_name, op_name=None):
     # Models
-    model = DQN.load(model_dir + agent_name)
+    if agent_name is None:
+        model = SimpleRuleBasedAgent(env)
+    else:
+        model = DQN.load(model_dir + agent_name)
+
     if op_name is None:
         op = SimpleRuleBasedAgent(env)
     else:
