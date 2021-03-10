@@ -28,6 +28,8 @@ def main():
     # op_name = 'gcp-feature-based-op-obs6.out'
     # op_name = 'models/gcp-feature-based-op-obs6.out'
 
+    # ==== EVALUATION ====
+
     # Initialize environment
     env = _make_env(save_video=False)
     env.seed(1)
@@ -86,8 +88,12 @@ def _make_agents(env, model_dir, agent_name, op_name=None):
     return model, op
 
 
-def _make_env(save_video):
-    env = gym.make('PongDuel-v0')
+def _make_env(save_video, max_rounds=None):
+    if max_rounds is None:
+        env = gym.make('PongDuel-v0')
+    else:
+        env = gym.make('PongDuel-v0', max_rounds=max_rounds)
+
     env = InfoWrapper(env)
     if save_video:
         env = Monitor(env, './output/recordings', video_callable=lambda episode_id: True, force=True)
