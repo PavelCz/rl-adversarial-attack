@@ -186,7 +186,8 @@ def learn_with_selfplay(max_agents,
 
     if not opponent_pred_obs:
         # Evaluate the last model against each of its previous iterations
-        evaluate_against_predecessors(previous_models, env_rule_based=eval_env_rule_based, env_normal=eval_env, num_eval_eps=num_eval_eps)
+        # evaluate_against_predecessors(previous_models, env_rule_based=eval_env_rule_based, env_normal=eval_env, num_eval_eps=num_eval_eps)
+        pass  # Not useful right now
 
 
 def _init_envs(image_observations, num_skip_steps, opponent_pred_obs, adversarial_training):
