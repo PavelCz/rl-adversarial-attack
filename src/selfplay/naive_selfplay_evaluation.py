@@ -22,7 +22,7 @@ def evaluate(model, env, num_eps: int, slowness=0.05, render=False, save_perturb
         while not done:
             if attack == "fgsm":
                 # Perturb observation
-                obs = fgsm_attack_sb3(obs, model, 0.1, img_obs=img_obs)
+                obs = fgsm_attack_sb3(obs, model, 0.02, img_obs=img_obs)
             if render:
                 time.sleep(slowness)
                 if save_perturbed_img:
