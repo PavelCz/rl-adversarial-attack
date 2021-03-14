@@ -1,24 +1,7 @@
 import gym
 import numpy as np
-from gym.spaces import Box
 
-
-def flip_observation_horizontally(obs):
-    # Ball directions should be ['NW', 'W', 'SW', 'SE', 'E', 'NE']
-    # COnsequently, when we reverse ball direction array, we flip horizontally
-    agent_pos, ball_pos, ball_dir = obs[:2], obs[2:4], obs[4:]
-
-    # Perform the flipping
-    # The range is [0,1]. However, due to the way the observations are calculated, a position all the way to the left will be 0/30
-    # and a position all the way to the right 29/30. Therefore, doing 1 - position is not enough, instead we have to offset by 1/30 in order
-    # for everything to be exactly mirrored
-    agent_pos[1] = 1 - agent_pos[1] - 1 / 30
-    ball_pos[1] = 1 - ball_pos[1] - 1 / 30
-    ball_dir.reverse()
-
-    # Merge into single obs list
-    reversed_obs = agent_pos + ball_pos + ball_dir
-    return reversed_obs
+from src.common.observation_utils import flip_observation_horizontally
 
 
 class MAGymCompatibilityWrapper(gym.Wrapper):
@@ -33,7 +16,7 @@ class MAGymCompatibilityWrapper(gym.Wrapper):
     :param opponent: This agent will be used as the opponent in the multi-agent environment
     """
 
-    def __init__(self, env: gym.Env, opponent=None, num_skip_steps=0):
+    def __init__(self, env: gym.Env, image_observations, opponent=None, num_skip_steps=0, ):
         super(MAGymCompatibilityWrapper, self).__init__(env)
         self.opponent = opponent
         self.opponent_obs = None  # The previous observation that is meant for the opponent
@@ -42,6 +25,7 @@ class MAGymCompatibilityWrapper(gym.Wrapper):
         self.action_space = self.action_space[0]
         self.opponent_right_side = True
         self.num_skip_steps = num_skip_steps
+        self.image_observations = image_observations
 
     def reset(self):
         """
@@ -67,8 +51,17 @@ class MAGymCompatibilityWrapper(gym.Wrapper):
         :param action: ([float] or int) Action taken by the agent
         :return: (np.ndarray, float, bool, dict) observation, reward, is the episode over?, additional informations
         """
+        if self.image_observations == 'both':
+            img_obs_op = True
+        elif self.image_observations == 'main':
+            img_obs_op = False
+        elif self.image_observations == 'none':  # This means feature observations
+            img_obs_op = False
+        else:
+            raise AttributeError("self.image_observation must be either 'main' or 'both'")
+
         # Flip the observation for the opponent, such that from the opponents viewpoint it is also on the left side
-        obs_for_opponent = flip_observation_horizontally(self.opponent_obs)
+        obs_for_opponent = flip_observation_horizontally(self.opponent_obs, img_obs_op)
         # Get the action taken by the opponent, based on the observation that is meant for the opponent
         opponent_action, _states = self.opponent.predict(np.array(obs_for_opponent), deterministic=False)
 
