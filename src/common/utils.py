@@ -24,6 +24,8 @@ def create_log_dir(args):
         log_dir = log_dir + "opp-"
     if args.obs_img:
         log_dir = log_dir + "img-"
+    if args.fgsm_training:
+        log_dir += "robust-"
     if args.ddqn:
         log_dir = log_dir + "double-"
     log_dir = log_dir + "dqn-{}".format(args.save_model)
@@ -68,13 +70,17 @@ def name_file(args, load_agent=None):
     if args.obs_img:
         if args.obs_img == "both" or args.obs_img == load_agent:
             fname += "img-"
+    if args.fgsm_training:
+        fname += "robust-"
     if args.ddqn:
         fname += "double-"
     fname += "dqn-{}.pth".format(args.save_model)
+    
     return fname
 
-def save_model(models, policies, args):
+def save_model(models, policies, args, frame_idx):
     fname = name_file(args)
+    fname = str(frame_idx) + fname
     fname = os.path.join("models", fname)
 
     pathlib.Path('models').mkdir(exist_ok=True)
@@ -111,48 +117,6 @@ def load_model(models, policies, args):
     policies['p1'].load_state_dict(p1_checkpoint['p1_policy'])
     policies['p2'].load_state_dict(p2_checkpoint['p2_policy'])
 
-def save_checkpoint(models, policies, frame_idx, optimizers, args):
-    fname = name_file(args)
-    fname = os.path.join("checkpoints", fname)
-
-    pathlib.Path('checkpoints').mkdir(exist_ok=True)
-    torch.save({
-        'p1_model': models['p1'].state_dict(),
-        'p2_model': models['p2'].state_dict(),
-        'p1_policy': policies['p1'].state_dict(),
-        'p2_policy': policies['p2'].state_dict(),
-        'frame_idx': frame_idx,
-        'p1_model_optimizer': optimizers['p1_model'].state_dict(),
-        'p2_model_optimizer': optimizers['p2_model'].state_dict(),
-        'p1_policy_optimizer': optimizers['p1_policy'].state_dict(),
-        'p2_policy_optimizer': optimizers['p2_policy'].state_dict(),
-    }, fname)
-
-def load_checkpoint(models, policies, optimizers, args):
-    fname = name_file(args)
-    fname = os.path.join("checkpoints", fname)
-    # Hack to load models saved with GPU
-    if args.device == torch.device("cpu"):
-        # Models save on GPU load on CPU
-        map_location = lambda storage, loc: storage
-    else:
-        # Models save on CPU load on CPU
-        map_location = None
-    
-    if not os.path.exists(fname):
-        raise ValueError("No model saved with name {}".format(fname))
-
-    checkpoint = torch.load(fname, map_location)
-    models['p1'].load_state_dict(checkpoint['p1_model'])
-    models['p2'].load_state_dict(checkpoint['p2_model'])
-    policies['p1'].load_state_dict(checkpoint['p1_policy'])
-    policies['p2'].load_state_dict(checkpoint['p2_policy'])
-    optimizers['p1_model'].load_state_dict(checkpoint['p1_model_optimizer'])
-    optimizers['p2_model'].load_state_dict(checkpoint['p2_model_optimizer'])
-    optimizers['p1_policy'].load_state_dict(checkpoint['p1_policy_optimizer'])
-    optimizers['p2_policy'].load_state_dict(checkpoint['p2_policy_optimizer'])
-    return checkpoint['frame_idx']+1
-
 def set_global_seeds(seed):
     try:
         import torch
@@ -184,3 +148,39 @@ def load_model_single(model, policy, args, agent):
     checkpoint = torch.load(fname, map_location)
     model.load_state_dict(checkpoint[model_key])
     policy.load_state_dict(checkpoint[policy_key])
+
+def load_with_p1_name(model, policy, args, name):
+    name = name
+    name = os.path.join('models',name)
+    print("Load agent p1 from {}".format(name))
+    if args.device == torch.device("cpu"):
+        # Models save on GPU load on CPU
+        map_location = lambda storage, loc: storage
+    else:
+        # Models save on GPU load on GPU
+        map_location = None
+    
+    if not os.path.exists(name):
+        raise ValueError("No model saved with name {}".format(name))
+
+    checkpoint = torch.load(name, map_location)
+    model.load_state_dict(checkpoint['p1_model'])
+    policy.load_state_dict(checkpoint['p1_policy'])    
+
+def load_with_p2_name(model, policy, args, name):
+    name = name
+    name = os.path.join('models',name)
+    print("Load agent p2 from {}".format(name))
+    if args.device == torch.device("cpu"):
+        # Models save on GPU load on CPU
+        map_location = lambda storage, loc: storage
+    else:
+        # Models save on GPU load on GPU
+        map_location = None
+    
+    if not os.path.exists(name):
+        raise ValueError("No model saved with name {}".format(name))
+
+    checkpoint = torch.load(name, map_location)
+    model.load_state_dict(checkpoint['p2_model'])
+    policy.load_state_dict(checkpoint['p2_policy'])    

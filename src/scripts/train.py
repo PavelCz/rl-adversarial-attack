@@ -9,8 +9,10 @@ from collections import deque
 from time import sleep
 
 from src.common.utils import epsilon_scheduler, print_log, load_checkpoint, save_model, save_checkpoint
+from src.common.adv_train_ma_wrapper import AdvTrainWrapperNFSP
 from src.selfplay.model import DQN, Policy
 from src.selfplay.storage import ReplayBuffer, ReservoirBuffer
+from src.selfplay.nfsp_loss import compute_sl_loss, compute_rl_loss, compute_rl_loss_DDQN
 
 def train(env, args, writer):
     # Initialize replay memories Replay Buffer Rewervoir Buffer
@@ -90,10 +92,16 @@ def train(env, args, writer):
         # Policy is decided by a combination of Best Response and Average Strategy
         if random.random() > args.eta:
             # With probability 1 - eta choose average strategy pi
+            if args.fgsm_training:
+                p1_state = AdvTrainWrapperNFSP.adv_sl_ob(p1_state, p1_policy, args)
+                p2_state = AdvTrainWrapperNFSP.adv_sl_ob(p2_state, p2_policy, args)
             p1_action = p1_policy.act(torch.tensor(p1_state).to(args.device))
-            p2_action = p2_policy.act(torch.tensor(p1_state).to(args.device))
+            p2_action = p2_policy.act(torch.tensor(p2_state).to(args.device))
         else:
             # With probability eta choose best response strategy beta
+            if args.fgsm_training:
+                p1_state = AdvTrainWrapperNFSP.adv_rl_ob(p1_state, p1_current_model, args)
+                p2_state = AdvTrainWrapperNFSP.adv_rl_ob(p2_state, p2_current_model, args)
             is_best_response = True
             epsilon = epsilon_by_frame(frame_idx)
             p1_action = p1_current_model.act(torch.tensor(p1_state).to(args.device), epsilon)
@@ -113,8 +121,8 @@ def train(env, args, writer):
         p2_action_deque.append(p2_action)
 
         # Direction of the ball
-        ball_dir = np.argmax(p1_state[-6:])
-        ball_dir_next = np.argmax(p1_next_state[-6:])
+        ball_dir = np.argmax(p1_state[4:10])
+        ball_dir_next = np.argmax(p1_next_state[4:10])
 
         p1_reward = reward[0]
         p2_reward = reward[1]
@@ -212,98 +220,21 @@ def train(env, args, writer):
             p1_sl_loss_list.clear(), p2_sl_loss_list.clear()
             prev_frame = frame_idx
             prev_time = time.time()
-            save_model(models={"p1": p1_current_model, "p2": p2_current_model},
-                       policies={"p1": p1_policy, "p2": p2_policy}, args=args)
-            save_checkpoint(models={"p1": p1_current_model, "p2": p2_current_model},
-                            policies={"p1": p1_policy, "p2": p2_policy},
-                            frame_idx=frame_idx,
-                            optimizers={"p1_model":p1_rl_optimizer,"p2_model":p2_rl_optimizer,
-                            "p1_policy":p1_sl_optimizer,"p2_policy":p2_sl_optimizer},
-                            args=args)
+            if frame_idx in [1500000, 1490000, 1470000, 1450000, 1400000, 1300000]:
+                save_model(models={"p1": p1_current_model, "p2": p2_current_model},
+                        policies={"p1": p1_policy, "p2": p2_policy}, args=args, frame_idx=frame_idx)
+            # save_checkpoint(models={"p1": p1_current_model, "p2": p2_current_model},
+            #                 policies={"p1": p1_policy, "p2": p2_policy},
+            #                 frame_idx=frame_idx,
+            #                 optimizers={"p1_model":p1_rl_optimizer,"p2_model":p2_rl_optimizer,
+            #                 "p1_policy":p1_sl_optimizer,"p2_policy":p2_sl_optimizer},
+            #                 args=args)
         
         # Render if rendering argument is on
         if args.render:
             env.render()
             # sleep(0.5)
 
-
-def compute_sl_loss(policy, reservoir_buffer, optimizer, args):
-    state, action = reservoir_buffer.sample(args.batch_size)
-
-    state = torch.tensor(np.float32(state)).to(args.device)
-    action = torch.LongTensor(action).to(args.device)
-
-    loss = best_response_loss(state, action, policy)
-    
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-    return loss
-
-def best_response_loss(state, action, model):
-    probs = model(state)
-    probs_with_actions = probs.gather(1, action.unsqueeze(1))
-    log_probs = probs_with_actions.log()
-    return -1 * log_probs.mean() 
-
-def compute_rl_loss(current_model, target_model, replay_buffer, optimizer, args):
-    state, action, reward, next_state, done = replay_buffer.sample(args.batch_size)
-    weights = torch.ones(args.batch_size).to(args.device)
-
-    state = torch.tensor(np.float32(state)).to(args.device)
-    next_state = torch.tensor(np.float32(next_state)).to(args.device)
-    action = torch.LongTensor(action).to(args.device)
-    reward = torch.tensor(reward).to(args.device)
-    done = torch.tensor(done).to(args.device)
-
-    # DQN current Q values
-    q_values = current_model(state)
-    q_values_for_actions = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
-
-    # DQN target Q values
-    target_next_q_values = target_model(next_state)
-    max_next_q_values = target_next_q_values.max(1)[0]
-
-    target_q_values_for_actions = reward + (args.gamma ** args.frame_skipping) * max_next_q_values * (1 - done)
-
-    # Huber Loss
-    loss = F.smooth_l1_loss(q_values_for_actions, target_q_values_for_actions.detach(), reduction='none')
-    loss = (loss * weights).mean()
-
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-    return loss
-
-def compute_rl_loss_DDQN(current_model, target_model, replay_buffer, optimizer, args):
-    state, action, reward, next_state, done = replay_buffer.sample(args.batch_size)
-    weights = torch.ones(args.batch_size).to(args.device)
-
-    state = torch.tensor(np.float32(state)).to(args.device)
-    next_state = torch.tensor(np.float32(next_state)).to(args.device)
-    action = torch.LongTensor(action).to(args.device)
-    reward = torch.tensor(reward).to(args.device)
-    done = torch.tensor(done).to(args.device)
-
-    # Double DQN(DDQN) current Q values
-    q_values = current_model(state)
-    q_values_for_actions = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
-
-    # Double DQN(DDQN) current next Q values and target next Q values
-    current_next_q_values = current_model(next_state)
-    target_next_q_values = target_model(next_state)
-    next_q_values = target_next_q_values.gather(1, current_next_q_values.max(1)[1].unsqueeze(1)).squeeze(1)
-
-    target_q_values_for_actions = reward + (args.gamma ** args.frame_skipping) * next_q_values * (1 - done)
-
-    # Huber Loss
-    loss = F.smooth_l1_loss(q_values_for_actions, target_q_values_for_actions.detach(), reduction='none')
-    loss = (loss * weights).mean()
-
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-    return loss
 
 def multi_step_reward(rewards, gamma):
     ret = 0.

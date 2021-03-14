@@ -47,14 +47,17 @@ class StableBaselinesWrapper(gym.Wrapper):
         return np.array(state), reward, done, info
 
     def bounce_reward(self, state, new_state, reward):
+        """
+        Bounce reward for training adversarial policy. Adversary gets a minus reward
+        when the victim hits the ball. This reward is formulated in a way that hoping
+        the average frames per epsiode will decrease
+        """
         ball_dir = np.nonzero(state[4:10])[0]
         new_ball_dir = np.nonzero(new_state[4:10])[0]
         if self.eval_agent == 'p1' and ball_dir in [0,1,2] and new_ball_dir in [3,4,5] and reward != 1:
             return -1
         elif self.eval_agent =='p2' and ball_dir in [3,4,5] and new_ball_dir in [0,1,2] and reward != 1:
             return -1
-        # elif reward == 1:
-        #     return 1
         else:
             return 0
     

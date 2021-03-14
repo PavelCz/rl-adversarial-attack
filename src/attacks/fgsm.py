@@ -1,17 +1,24 @@
 import torch
 import numpy as np
 from PIL import Image
-from src.scripts.train import best_response_loss
+from src.selfplay.nfsp_loss import best_response_loss
 from ma_gym.envs.utils.draw import draw_grid, fill_cell, draw_border
 from skimage.transform import resize
 
-def fgsm_attack(state, model, epsilon, args):
-    action = model.act(state)
-    action = torch.LongTensor([action]).to(args.device)
-
-    state = state.detach().unsqueeze(0).requires_grad_(True)
-
-    loss = best_response_loss(state, action, model)
+def fgsm_attack(state, model, epsilon, policy, args):
+    if policy == 'sl':
+        action = model.act(state)
+        action = torch.LongTensor([action]).to(args.device)
+        state = state.detach().unsqueeze(0).requires_grad_(True)
+        loss = best_response_loss(state, action, model)
+    else:
+        state = state.detach().unsqueeze(0).requires_grad_(True)
+        q_vals = model(state)
+        target = torch.argmax(q_vals).unsqueeze(0)
+        preds = torch.softmax(q_vals, 1)
+        # The loss is calcualted with cross entropy
+        loss_func = torch.nn.CrossEntropyLoss()
+        loss = loss_func(preds, target)
 
     model.zero_grad()
 
@@ -21,7 +28,12 @@ def fgsm_attack(state, model, epsilon, args):
     state = state.squeeze()
     # Perturb only agent position and ball position 
     perturbed_state = state + epsilon * state_grad.sign()
-    perturbed_state = torch.cat((perturbed_state[:4], state[4:]))
+    if args.obs_opp:
+        perturbed_state = torch.cat((perturbed_state[:4], state[4:10], perturbed_state[10:]))
+    elif args.obs_img:
+        pass
+    else:
+        perturbed_state = torch.cat((perturbed_state[:4], state[4:]))
     return perturbed_state.detach().cpu().numpy()
 
 
@@ -61,8 +73,8 @@ def plot_perturbed(img, state, args):
     if args.obs_img == 'both' or args.obs_img == args.fgsm:
         perturbed_image_observation(img, state)
     else:
-        # Plot when the attacked agent miss the ball
-        if (args.fgsm == 'p1' and state[3] < 0.02) or (args.fgsm == 'p2' and state[3] > 0.98): 
+        # Plot when the victim miss the ball
+        if (args.fgsm == 'p1' and 0.005<state[3] < 0.02) or (args.fgsm == 'p2' and state[3] > 0.98): 
             perturbed_vector_observation(img, state)
 
 def perturbed_vector_observation(img, state):
@@ -71,11 +83,14 @@ def perturbed_vector_observation(img, state):
     BALL_HEAD_COLOR = 'black'
     BALL_TAIL_COLOR = 'black'
     img = Image.fromarray(img[2:200, 2:150, :])
-    img.save("original.png")
+    clean_img = draw_border(img, border_width=2, fill='black')  
+    clean_img.save("original.png")
 
-    for row in range(int(round(state[0]*40)) - 2, int(round(state[0]*40)) + 3):
-        fill_cell(img, (row, round(state[1]*30)), cell_size=CELL_SIZE, fill=AGENT_COLORS)
-    ball_cells = ball(state[2:4],state[4:])
+    for i in [0,10]:
+        for row in range(int(round(state[i+0]*40)) - 2, int(round(state[i+0]*40)) + 3):
+            fill_cell(img, (row, round(state[i+1]*30)), cell_size=CELL_SIZE, fill=AGENT_COLORS)
+    
+    ball_cells = ball(state[2:4],state[4:10])
     fill_cell(img, ball_cells[0], cell_size=CELL_SIZE, fill=BALL_HEAD_COLOR)
     fill_cell(img, ball_cells[1], cell_size=CELL_SIZE, fill=BALL_TAIL_COLOR)
     fill_cell(img, ball_cells[2], cell_size=CELL_SIZE, fill=BALL_TAIL_COLOR)
@@ -83,16 +98,18 @@ def perturbed_vector_observation(img, state):
     img.save("perturb.png")
 
 def perturbed_image_observation(img, state):
-    img = img[2:200, 2:150, :]
+    img = img[2:202, 2:152, :]
     # Downsample to input image size and upsample back to original renedered image size
     img = resize(img,(40,30), anti_aliasing=True)
     img = resize(img, (200,150))
     img = Image.fromarray(np.uint8(img.clip(0., 1.) * 255))
+    img = draw_border(img, border_width=2, fill='black')  
     img.save("original.png")
 
     state = np.swapaxes(state, 2, 0)
     state = resize(state,(200,150))
     state = Image.fromarray(np.uint8(state.clip(0., 1.) * 255))
+    state = draw_border(state, border_width=2, fill='red')  
     state.save("perturb.png")
 
 def ball(ball_pos, onehot):

@@ -27,7 +27,6 @@ class ObservationVectorToImage(gym.ObservationWrapper):
 
     def observation(self, observation):
         observation_img = self.env.render(mode ='rgb_array')[2:202, 2:152, :]
-
         # skimage.transform.resize will return image as float with values ranging from 0 to 1
         observation_img = np.float32(resize(observation_img,(40,30), anti_aliasing=True))
         # img = Image.fromarray((observation_img * 255).astype(np.uint8))

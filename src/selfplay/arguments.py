@@ -68,6 +68,10 @@ def get_args():
     parser.add_argument('--policy_attack', type=str, default=None,
                         help='Select p1 or p2 to attack by an adversary trained with adversarial policy')
 
+    # Adversarial Defense
+    parser.add_argument('--fgsm_training', action='store_true',
+                        help='Adversarial robust training with adversarial observation from FGSM')
+
     # Optimization Arguments
     parser.add_argument('--lr', type=float, default=1e-4,
                         help='Learning rate')
