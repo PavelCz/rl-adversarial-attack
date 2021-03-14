@@ -64,6 +64,7 @@ Run `python main.py --env 'PongDuel-v0'` to reproduce the training.
 
 ## Code Structure
 
+- `models`: Trained models that were created as part of the project
 - `src`: Python Source code root directory
     - `agents`
         - Implemented all-purpose agents
