@@ -52,15 +52,21 @@ Settings for these scripts can be adjusted inside the scripts.
     - Show a Pong match with the specified trained agents
     
 
-## Train Neural Fictitious Self-Play (NFSP)
+## Running Neural Fictitious Self-Play (NFSP)
 
-Run `python main.py --env 'PongDuel-v0' --evaluate --render` to simply evaluate the trained agents playing against each other.
+- `main`
+    - Main script for running NFSP agents
+- `src/scripts/train`
+    - Training run for NFSP
+- `src/scripts/test`
+    - Evaluate trained NFSP agents
 
-Run `python main.py --env 'PongDuel-v0' --evaluate --render --fgsm p1 --plot_fgsm` to attack agent 1 with Fast Gradient Sign Method(FGSM) and plot the perturbed state.
-
-The original observation state of the agent from ma-gym is a 10 dimensional vector encoding the position and direction of the ball and two paddles, to change the observation state to an image observation run `python main.py --env 'PongDuel-v0' --evaluate --render --obs_img both`.
-
-Run `python main.py --env 'PongDuel-v0'` to reproduce the training.
+Run `python main.py --env 'PongDuel-v0'` with built-in arguments to reproduce our training and testing results. Use `--obs_opp both` and `--obs_img both` to choose between feature-based and image-based observation space for our agent, respectively. Use `--evaluate` to test trained agents. Use `--render` to visualize agents playing Pong. For more details please run `python main.py -h`. We give some examples about how to run the scipt that you may want to try out.
+ 
+- `python main.py --env 'PongDuel-v0' --obs_opp both` 
+    - Train NFSP agents with feature-based observation.
+- `python main.py --env 'PongDuel-v0' --obs_img both --evaluate --render --fgsm p1 --plot_fgsm`
+    - Attack trained NFSP agent with image-based observation using FGSM and plot the perturbed observation
 
 ## Code Structure
 
@@ -80,3 +86,7 @@ Run `python main.py --env 'PongDuel-v0'` to reproduce the training.
         - Module containing code specific to self-play implementation
     - `tests`
         - Some tests
+
+## Acknowledgements
+
+- Pyroch Implementation of NFSP is based on [pytorch-nfsp](https://github.com/younggyoseo/pytorch-nfsp) 

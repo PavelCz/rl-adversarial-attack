@@ -47,8 +47,6 @@ def get_args():
                         help='Type both, p1 or p2 to decide which agent observes the whole image space')
 
     # Evaluation Arguments
-    parser.add_argument('--load-model', action='store_true', default=False,
-                        help='Load model from checkpoint and resume training')
     parser.add_argument('--save-model', type=str, default='model',
                         help='Model name to save')
     parser.add_argument('--evaluate', action='store_true',

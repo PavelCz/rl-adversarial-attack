@@ -9,6 +9,9 @@ import torch
 import numpy as np
 
 def epsilon_scheduler(eps_start, eps_final, eps_decay):
+    """
+    Epsilon for exploration and exploitation tradeoff for DQN training
+    """
     def function(frame_idx):
         return eps_final + (eps_start - eps_final) * math.exp(-1. * frame_idx / eps_decay)
     return function
@@ -59,6 +62,9 @@ def print_args(args):
         print(' ' * 26 + k + ': ' + str(v))
 
 def name_file(args, load_agent=None):
+    """
+    Name file name according args value
+    """
     fname = "{}-".format(args.env)
     if args.negative:
         fname += "negative-"
@@ -92,6 +98,12 @@ def save_model(models, policies, args, frame_idx):
     }, fname)
 
 def load_model(models, policies, args):
+    """
+    Load models to left-hand side and right-hand side player
+    from the same saved model automatically. If you want to load
+    players from different saved model use load_with_p1_name
+    and load_with_p2_name.  
+    """
     p1_fname = name_file(args, 'p1')
     p1_fname = os.path.join("models", p1_fname)
     p2_fname = name_file(args, 'p2')
@@ -118,6 +130,9 @@ def load_model(models, policies, args):
     policies['p2'].load_state_dict(p2_checkpoint['p2_policy'])
 
 def set_global_seeds(seed):
+    """
+    Set global seed for reproducibility
+    """  
     try:
         import torch
         torch.manual_seed(seed)
@@ -129,28 +144,10 @@ def set_global_seeds(seed):
     np.random.seed(seed)
     random.seed(seed)
 
-def load_model_single(model, policy, args, agent):
-    fname = name_file(args, agent)
-    fname = os.path.join("models", fname)
-    model_key = agent + "_model"
-    policy_key = agent + "_policy"
-    print("Load agent {} from {}".format(agent, fname))
-    if args.device == torch.device("cpu"):
-        # Models save on GPU load on CPU
-        map_location = lambda storage, loc: storage
-    else:
-        # Models save on GPU load on GPU
-        map_location = None
-    
-    if not os.path.exists(fname):
-        raise ValueError("No model saved with name {}".format(fname))
-
-    checkpoint = torch.load(fname, map_location)
-    model.load_state_dict(checkpoint[model_key])
-    policy.load_state_dict(checkpoint[policy_key])
-
 def load_with_p1_name(model, policy, args, name):
-    name = name
+    """
+    Load model to the left-hand side player(p1)
+    """
     name = os.path.join('models',name)
     print("Load agent p1 from {}".format(name))
     if args.device == torch.device("cpu"):
@@ -168,7 +165,9 @@ def load_with_p1_name(model, policy, args, name):
     policy.load_state_dict(checkpoint['p1_policy'])    
 
 def load_with_p2_name(model, policy, args, name):
-    name = name
+    """
+    Load model to the right-hand side player(p2)
+    """
     name = os.path.join('models',name)
     print("Load agent p2 from {}".format(name))
     if args.device == torch.device("cpu"):

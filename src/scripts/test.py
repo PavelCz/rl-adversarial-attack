@@ -12,7 +12,7 @@ from src.common.utils import load_model, load_with_p1_name, load_with_p2_name
 from src.selfplay.model import DQN, Policy
 from src.attacks.fgsm import fgsm_attack, plot_perturbed
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
-from src.common.obervation_utils import flip_observation_horizontally
+from src.common.observation_utils import flip_observation_horizontally
 
 def test(env, args): 
     p1_current_model = DQN(env, args, 'p1').to(args.device)
@@ -33,6 +33,7 @@ def test(env, args):
             adversary = sb3.DQN.load("adversary_p1")
         else:
             raise AssertionError ("Argument takes value \"p1\" or \"p2\" but received {}".format(args.policy_attack))
+            
     p1_reward_list = []
     p2_reward_list = []
     length_list = []
@@ -40,9 +41,10 @@ def test(env, args):
     p2_ball_hits_list = []
     ball_moved_towards_p1_list = []
     ball_moved_towards_p2_list = []
+    # Load rule-based agent
     p1 = SimpleRuleBasedAgent(env)
     p2 = SimpleRuleBasedAgent(env)
-    for _ in range(1):
+    for _ in range(100):
         p1_state, p2_state = env.reset()
         p1_episode_reward = 0
         p2_episode_reward = 0
@@ -80,12 +82,6 @@ def test(env, args):
                     p1_action, _states = adversary.predict(p1_state)
                     if isinstance(p1_action, list) or isinstance(p1_action, np.ndarray):
                         p1_action = p1_action[0]
-                    if ball_dir in [0,1,2]:
-                        p1_action = p1_policy.act(torch.tensor(p1_state).to(args.device))
-                    if ball_dir in [3,4,5]:
-                        p1_action, _states = adversary.predict(p1_state)
-                        if isinstance(p1_action, list) or isinstance(p1_action, np.ndarray):
-                            p1_action = p1_action[0]
 
             # # Random Action Agent
             # p1_action = env.action_space.sample()[0]
@@ -111,15 +107,17 @@ def test(env, args):
                 print(p1_episode_reward, p2_episode_reward)
                 p1_reward_list.append(p1_episode_reward)
                 p2_reward_list.append(p2_episode_reward)
-                p1_ball_hits_list.append(info["p1_ball_hits"])
-                p2_ball_hits_list.append(info["p2_ball_hits"])
-                ball_moved_towards_p1_list.append(info["ball_moved_towards_p1"])
-                ball_moved_towards_p2_list.append(info["ball_moved_towards_p2"])
+                if not args.obs_img:
+                    p1_ball_hits_list.append(info["p1_ball_hits"])
+                    p2_ball_hits_list.append(info["p2_ball_hits"])
+                    ball_moved_towards_p1_list.append(info["ball_moved_towards_p1"])
+                    ball_moved_towards_p2_list.append(info["ball_moved_towards_p2"])
                 length_list.append(episode_length)
                 break
 
     print("Test Result - Length {:.2f} p1/Reward {:.2f} p2/Reward {:.2f}".format(
         np.mean(length_list), np.mean(p1_reward_list), np.mean(p2_reward_list)))
-    p1_hit_prob = np.sum(p1_ball_hits_list)/np.sum(ball_moved_towards_p1_list)
-    p2_hit_prob = np.sum(p2_ball_hits_list)/np.sum(ball_moved_towards_p2_list)
-    print("P1 hits: {}, P2 hits: {}".format(p1_hit_prob, p2_hit_prob))
+    if not args.obs_img:
+        p1_hit_prob = np.sum(p1_ball_hits_list)/np.sum(ball_moved_towards_p1_list)
+        p2_hit_prob = np.sum(p2_ball_hits_list)/np.sum(ball_moved_towards_p2_list)
+        print("P1 hits ratio: {}, P2 hits ratio: {}".format(p1_hit_prob, p2_hit_prob))

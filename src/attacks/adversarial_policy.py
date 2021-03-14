@@ -14,9 +14,9 @@ def train_adversarial_policy(env, args):
     victim_policy = Policy(env, args, args.policy_attack).to(args.device)
     victim_model.eval(); victim_policy.eval()
     if args.policy_attack == 'p1':
-        load_with_p1_name(victim_model, victim_policy, args, "1500000PongDuel-v0-opp-robust-dqn-model.pth")
+        load_with_p1_name(victim_model, victim_policy, args, "PongDuel-v0-opp-robust-dqn-model.pth")
     elif args.policy_attack == 'p2':
-        load_with_p2_name(victim_model, victim_policy, args, "1500000PongDuel-v0-opp-robust-dqn-model.pth")
+        load_with_p2_name(victim_model, victim_policy, args, "PongDuel-v0-opp-robust-dqn-model.pth")
     else:
         raise AssertionError ("Argument takes value \"p1\" or \"p2\" but received {}".format(args.policy_attack))
     

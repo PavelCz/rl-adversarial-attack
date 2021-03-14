@@ -8,7 +8,7 @@ import numpy as np
 from collections import deque
 from time import sleep
 
-from src.common.utils import epsilon_scheduler, print_log, load_checkpoint, save_model, save_checkpoint
+from src.common.utils import epsilon_scheduler, print_log, save_model
 from src.common.adv_train_ma_wrapper import AdvTrainWrapperNFSP
 from src.selfplay.model import DQN, Policy
 from src.selfplay.storage import ReplayBuffer, ReservoirBuffer
@@ -58,16 +58,6 @@ def train(env, args, writer):
     p2_reward_deque = deque(maxlen=args.frame_skipping)
     p2_action_deque = deque(maxlen=args.frame_skipping)
 
-    frame_start = 1
-
-    if args.load_model:
-        frame_start = load_checkpoint(models={"p1": p1_current_model, "p2": p2_current_model},
-                            policies={"p1": p1_policy, "p2": p2_policy},
-                            optimizers={"p1_model":p1_rl_optimizer,"p2_model":p2_rl_optimizer,
-                            "p1_policy":p1_sl_optimizer,"p2_policy":p2_sl_optimizer},
-                            args=args)
-        print("Resume training from frame {}".format(frame_start))
-
     p1_target_model.load_state_dict(p1_current_model.state_dict())
     p2_target_model.load_state_dict(p2_current_model.state_dict())
 
@@ -81,13 +71,13 @@ def train(env, args, writer):
     p1_episode_reward, p2_episode_reward = 0, 0
     tag_interval_length = 0
     prev_time = time.time()
-    prev_frame = frame_start
+    prev_frame = 1
 
     # Main Loop
     state = env.reset()
     p1_state = state[0]
     p2_state = state[1]
-    for frame_idx in range(frame_start, args.max_frames + 1): 
+    for frame_idx in range(1, args.max_frames + 1): 
         is_best_response = False
         # Policy is decided by a combination of Best Response and Average Strategy
         if random.random() > args.eta:
@@ -220,15 +210,9 @@ def train(env, args, writer):
             p1_sl_loss_list.clear(), p2_sl_loss_list.clear()
             prev_frame = frame_idx
             prev_time = time.time()
-            if frame_idx in [1500000, 1490000, 1470000, 1450000, 1400000, 1300000]:
+            if frame_idx in [1500000, 1450000, 1400000]:
                 save_model(models={"p1": p1_current_model, "p2": p2_current_model},
                         policies={"p1": p1_policy, "p2": p2_policy}, args=args, frame_idx=frame_idx)
-            # save_checkpoint(models={"p1": p1_current_model, "p2": p2_current_model},
-            #                 policies={"p1": p1_policy, "p2": p2_policy},
-            #                 frame_idx=frame_idx,
-            #                 optimizers={"p1_model":p1_rl_optimizer,"p2_model":p2_rl_optimizer,
-            #                 "p1_policy":p1_sl_optimizer,"p2_policy":p2_sl_optimizer},
-            #                 args=args)
         
         # Render if rendering argument is on
         if args.render:
