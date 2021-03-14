@@ -12,11 +12,11 @@ def main():
     only_rule_based_opponent = False  # True forces play against rule_based, i.e. no self-play
     patience = 20
     image_observations = False
-    output_folder = "output"
+    output_folder = "../../output"
 
-    model_name = 'finetuneA'
+    model_name = 'adv-retrain-adversary'
 
-    fine_tune_on = 'gcp-feature-based-op-obs7.out'
+    fine_tune_on = 'gcp-feature-based-op-obs8-adv-retrain.out'
 
     print(f'Running training for model {model_name}')
     learn_with_selfplay(max_agents=max_agents,

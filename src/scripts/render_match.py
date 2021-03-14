@@ -21,10 +21,10 @@ def main():
     save_video = True
 
     agent_name = 'models/gcp-feature-based-op-obs7.out'
-    op_name = None  # "gcp-fine-tuned2.out"
+    op_name = 'finetuneA2.out'  # 'models/gcp-feature-based-op-obs7.out'  # "gcp-fine-tuned2.out"
 
     # Initialize environment
-    env = _make_env(save_video=save_video, max_rounds=5)
+    env = _make_env(save_video=save_video, max_rounds=10)
 
     model, op = _make_agents(env, model_dir, agent_name, op_name=op_name)
 

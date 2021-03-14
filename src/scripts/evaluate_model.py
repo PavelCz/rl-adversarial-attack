@@ -22,8 +22,8 @@ def main():
     num_eps = 200
     attack = None
 
-    agent_name = "finetuneA2.out"
-    op_name = 'models/gcp-feature-based-op-obs7.out'
+    agent_name = 'adv-trainedA7.out'
+    op_name = None  # 'gcp-feature-based-op-obs7.out'
     # agent_name = 'gcp-feature-based-op-obs6.out'
     # op_name = 'gcp-feature-based-op-obs6.out'
     # op_name = 'models/gcp-feature-based-op-obs6.out'

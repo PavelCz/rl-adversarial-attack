@@ -13,10 +13,7 @@ def main():
     attack = 'fgsm'
 
     agent_name = 'gcp-feature-based-op-obs7.out'
-    op_name = None  # 'gcp-feature-based-op-obs7.out'
-    # agent_name = 'gcp-feature-based-op-obs6.out'
-    # op_name = 'gcp-feature-based-op-obs6.out'
-    # op_name = 'models/gcp-feature-based-op-obs6.out'
+    op_name = None  # Use rule-based opponent
 
     # ==== EVALUATION ====
 
