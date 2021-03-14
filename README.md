@@ -61,12 +61,14 @@ Settings for these scripts can be adjusted inside the scripts.
 - `src/scripts/test`
     - Evaluate trained NFSP agents
 
-Run `python main.py --env 'PongDuel-v0'` with built-in arguments to reproduce our training and testing results. Use `--obs_opp both` and `--obs_img both` to choose between feature-based and image-based observation space for our agent, respectively. Use `--evaluate` to test trained agents. Use `--render` to visualize agents playing Pong. For more details please run `python main.py -h`. We give some examples about how to run the scipt that you may want to try out.
+Run `python main.py --env 'PongDuel-v0'` with built-in arguments to reproduce our training and testing results. Use `--obs_opp both` and `--obs_img both` to choose between feature-based and image-based observation for the agent, respectively. Use `--evaluate` to test trained agents. Use `--render` to visualize agents playing Pong. For more details please run `python main.py -h`. We give some examples about how to run the script that you may want to try out.
  
 - `python main.py --env 'PongDuel-v0' --obs_opp both` 
-    - Train NFSP agents with feature-based observation.
+    - Train NFSP agents with feature-based observation
 - `python main.py --env 'PongDuel-v0' --obs_img both --evaluate --render --fgsm p1 --plot_fgsm`
-    - Attack trained NFSP agent with image-based observation using FGSM and plot the perturbed observation
+    - Attack the left-hand side trained image-based NFSP agent using FGSM and plot the perturbed observation
+- `python main.py --env 'PongDuel-v0' --obs_opp both --fgsm_training`
+    - Adversarial training on NFSP
 
 ## Code Structure
 
