@@ -8,6 +8,11 @@ from src.common.observation_utils import flip_observation_horizontally, is_ball_
 
 
 class WhiteBoxAdversarialAgent:
+    """
+    A white-box adversarial agent that estimates the next state and uses the white-box informations to get the victim q-net predictions in
+    that state. Assuming the victim is most confused in states where the output of the q-net has highest entropy, we perform the
+    corresponding action.
+    """
     def __init__(self, env: gym.Env, victim, victim_type):
         self.victim = victim
         self.env = env

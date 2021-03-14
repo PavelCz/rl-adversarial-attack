@@ -37,24 +37,29 @@ def learn_with_selfplay(max_agents,
                         adversarial_training=None,
                         save_freq=None):
     """
+    Train an agent with regular self-play. If there are checkpoints of previous training continue training with the checkpoints.
 
-    :param max_agents:
-    :param num_learn_steps:
-    :param num_learn_steps_pre_training:
-    :param num_eval_eps:
-    :param num_skip_steps:
-    :param model_name:
-    :param only_rule_based_op:
-    :param patience:
-    :param image_observations:
-    :param output_folder:
-    :param fine_tune_on:
+    :param max_agents: Stop after max_agents intermediate agents have been trained. An intermediate agent is saved when training
+    successfully created an improved agent.
+    :param num_learn_steps: Number of frames / steps for every learning iteration
+    :param num_learn_steps_pre_training: Number of frames / steps for pre-training on the rule-based agent
+    :param num_eval_eps: Number of episodes for intermediate evaluation. Intermediate evaluation determines whether trained agent improved
+    compared to previous version
+    :param num_skip_steps: Skip num_skip_steps frames performing the action from the previous step
+    :param model_name: Name for saving the model. If there are already checkpoints with this name training is continued. Checkpoints will be
+    saved as madel_namei, where i is the training iteration.
+    :param only_rule_based_op: If set to true training is only performed on the rule-based agent.
+    :param patience: Patience parameter for evaluation
+    :param image_observations: Use image instead of feature observations
+    :param output_folder: Root folder for outputs
+    :param fine_tune_on: If not None instead of self-play training perform training of an adversarial policy against the victim specified as
+    string to this parameter
     :param opponent_pred_obs:
         If this is set to True, the predictions of the opponents in the current state will beconcatenated to the observations for the main
         agent. This was an attempt to create a stronger adversarial policy, which could use this information, however in our experiments
         this didn't improve the adversarial policy
-    :param adversarial_training:
-    :param save_freq:
+    :param adversarial_training: If set to True perform adversarial training using FGSM during training.
+    :param save_freq: If not None save intermediate checkpoints during training with the given frequency
     :return:
     """
     eval_env, eval_env_rule_based, eval_op, train_env, train_env_rule_based = _init_envs(image_observations,
@@ -191,6 +196,7 @@ def learn_with_selfplay(max_agents,
 
 
 def _init_envs(image_observations, num_skip_steps, opponent_pred_obs, adversarial_training):
+    """ Initialize the environments with the necessaary wrappers for training. Wrappers are determined by settings in the arguments. """
     # In order to ensure symmetry for the agent when playing on either side, change second agent to red, so both have the same color
     if image_observations:
         pong_duel.AGENT_COLORS[1] = 'red'
@@ -252,5 +258,6 @@ def _init_envs(image_observations, num_skip_steps, opponent_pred_obs, adversaria
 
 
 def _make_model_path(output_path, model_name: str, i: int):
+    """ Given arguments determine the ouput path for model. """
     model_dir = Path(output_path) / 'models'
     return model_dir / (model_name + str(i) + '.out')

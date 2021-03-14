@@ -4,6 +4,11 @@ import copy
 
 
 class WhiteBoxSequenceAgent:
+    """
+    Like the WhiteBoxMonteCarloAgent with the difference that we don't use simulations to choose our action in every step. Instead we
+    perform a number of simulations for every action in the very first step. Then we take the most promising sequence of actions according
+    to our simulations and simply follow this sequence of actions.
+    """
     def __init__(self, env: gym.Env):
         self.env = env
         self.planned_actions = []

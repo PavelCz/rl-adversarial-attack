@@ -4,6 +4,10 @@ import copy
 
 
 class WhiteBoxMonteCarloAgent:
+    """
+    A white-box adversarial policy attempts based on Monte Carlo evaluation. Use white-box information to predict and perfectly simulate
+    future states. Choose state which is most advantageous according to simulations.
+    """
     def __init__(self, env: gym.Env, num_sims, sim_max_steps):
         self.env = env
         self.num_sims = num_sims
