@@ -1,5 +1,8 @@
 # Adversarial Attacks on Reinforcement Learning Agents Trained with Self-Play
+
 Project for the course *Advanced Deep Learning for Robotics*
+
+Group `tum-adlr-ws20-03`
 
 ## Requirements
 
@@ -32,7 +35,24 @@ cd ma-gym
 pip install -e .
 ```
 
-## Train Neural Fictitious Self-Play(NFSP)
+## Running Regular Self-Play
+
+Python scripts in the `src/scripts` folder to reproduce training and evaluation.
+Settings for these scripts can be adjusted inside the scripts.
+
+- `src/scripts/train_selfplay`
+    - Training run for regular self-play
+- `src/scripts/train_selfplay_adversarial_policy`
+    - Train an adversarial policy that trains against a specified fixed victim
+- `src/scripts/evaluate_model`
+    - Evaluate trained agents by playing Pong
+- `src/scripts/evaluate_observation_attack`
+    - Evaluate agent trained with regular self-play against FGSM
+- `src/scripts/render_match`
+    - Show a Pong match with the specified trained agents
+    
+
+## Train Neural Fictitious Self-Play (NFSP)
 
 Run `python main.py --env 'PongDuel-v0' --evaluate --render` to simply evaluate the trained agents playing against each other.
 
@@ -42,3 +62,20 @@ The original observation state of the agent from ma-gym is a 10 dimensional vect
 
 Run `python main.py --env 'PongDuel-v0'` to reproduce the training.
 
+## Code Structure
+
+- `src`: Python Source code root directory
+    - `agents`
+        - Implemented all-purpose agents
+    - `attacks`
+        - Code for both FGSM observation-based attack
+        - Adversarial policy agent
+        - Contains unsuccessful white-box adversarial policies
+    - `common`
+        - Common modules
+    - `scripts`
+        - Runnable python scripts for training, evaluating and visualizing
+    - `selfplay`
+        - Module containing code specific to self-play implementation
+    - `tests`
+        - Some tests
