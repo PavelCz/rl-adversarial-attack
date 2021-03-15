@@ -91,4 +91,4 @@ Run `python main.py --env 'PongDuel-v0'` with built-in arguments to reproduce ou
 
 ## Acknowledgements
 
-- Pyroch Implementation of NFSP is based on [pytorch-nfsp](https://github.com/younggyoseo/pytorch-nfsp) 
+- Pytorch implementation of NFSP is based on [pytorch-nfsp](https://github.com/younggyoseo/pytorch-nfsp) 
