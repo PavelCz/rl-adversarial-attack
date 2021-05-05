@@ -29,7 +29,8 @@ def main():
                         image_observations=image_observations,
                         output_folder=output_folder,
                         fine_tune_on=fine_tune_on,
-                        save_freq=100000)
+                        save_freq=100000,
+                        mc_dropout=False)
 
 
 if __name__ == '__main__':

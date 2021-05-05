@@ -6,6 +6,7 @@ import gym
 from stable_baselines3 import DQN
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.dqn import MlpPolicy
 
 from src.agents.simple_rule_based_agent import SimpleRuleBasedAgent
 from src.attacks.opponent_pred_as_obs_wrapper import OpponentPredictionObs
@@ -13,6 +14,7 @@ from src.common.AdversarialTrainingWrapper import AdversarialTrainingWrapper
 from src.common.image_wrapper import ObservationVectorToImage
 from src.common.opponent_wrapper import ObserveOpponent
 from src.common.reward_wrapper import RewardZeroToNegativeBiAgentWrapper
+from src.policies.mc_dropout import MCDropout
 from src.selfplay.ma_gym_compatibility_wrapper import MAGymCompatibilityWrapper
 
 from ma_gym.envs.pong_duel import pong_duel
@@ -35,7 +37,8 @@ def learn_with_selfplay(max_agents,
                         fine_tune_on=None,
                         opponent_pred_obs=False,
                         adversarial_training=None,
-                        save_freq=None):
+                        save_freq=None,
+                        mc_dropout=False):
     """
     Train an agent with regular self-play. If there are checkpoints of previous training continue training with the checkpoints.
 
@@ -87,11 +90,17 @@ def learn_with_selfplay(max_agents,
     pre_train_agent = SimpleRuleBasedAgent(train_env_rule_based)
     previous_models = [pre_train_agent]
 
+    if mc_dropout:
+        # Set policy
+        policy = MCDropout
+    else:
+        policy = MlpPolicy
+
     # Load potentially saved previous models
     for opponent_id in range(1, max_agents):
         path = _make_model_path(output_folder, model_name, opponent_id)
         if os.path.isfile(path):
-            model = DQN.load(path)
+            model = DQN.load(path, policy=policy)
             previous_models.append(model)
         else:
             break
@@ -105,7 +114,7 @@ def learn_with_selfplay(max_agents,
         # main_model = A2C('MlpPolicy', policy_kwargs=dict(optimizer_class=RMSpropTFLike, optimizer_kwargs=dict(eps=1e-5)), env=train_env, verbose=0,
         #                 tensorboard_log="output/tb-log")
         # main_model = A2C('MlpPolicy', train_env, verbose=0, tensorboard_log="output/tb-log")  # , exploration_fraction=0.3)
-        main_model = DQN('MlpPolicy', train_env_rule_based, verbose=0, tensorboard_log=tb_path)  # , exploration_fraction=0.3)
+        main_model = DQN(policy, train_env_rule_based, verbose=0, tensorboard_log=tb_path)  # , exploration_fraction=0.3)
     else:
         main_model = copy.deepcopy(previous_models[last_agent_id])
         main_model.set_env(train_env)
@@ -170,7 +179,7 @@ def learn_with_selfplay(max_agents,
             # Save the further trained model to disk
             main_model.save(_make_model_path(output_folder, model_name, opponent_id + 1))
             # Make a copy of the just saved model by loading it
-            copy_of_model = DQN.load(_make_model_path(output_folder, model_name, opponent_id + 1))
+            copy_of_model = DQN.load(_make_model_path(output_folder, model_name, opponent_id + 1), policy=policy)
             # Save the copy to the list
             previous_models.append(copy_of_model)
 

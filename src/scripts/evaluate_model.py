@@ -18,12 +18,16 @@ def main():
     # Only necessary for when working with image observations
     pong_duel.AGENT_COLORS[1] = 'red'
 
-    model_dir = '../../output/models/'
+    model_dir = 'scripts/output/models/'
     num_eps = 200
     attack = None
+    dropout = True
+    save_video = False
+    eval_name = ""
 
-    agent_name = 'adv-trainedA7.out'
-    op_name = None  # 'gcp-feature-based-op-obs7.out'
+    # agent_name = 'AdversaryA.pth'
+    agent_name = 'dropout100k3.out'
+    op_name = 'dropout100k3.out'  # 'gcp-feature-based-op-obs7.out'
     # agent_name = 'gcp-feature-based-op-obs6.out'
     # op_name = 'gcp-feature-based-op-obs6.out'
     # op_name = 'models/gcp-feature-based-op-obs6.out'
@@ -31,7 +35,7 @@ def main():
     # ==== EVALUATION ====
 
     # Initialize environment
-    env = _make_env(save_video=False)
+    env = _make_env(save_video=save_video)
     env.seed(1)
 
     model, op = _make_agents(env, model_dir, agent_name, op_name=op_name)
@@ -41,12 +45,13 @@ def main():
                                       env,
                                       attack=attack,
                                       num_eps=num_eps // 2,
-                                      return_infos=True)
+                                      return_infos=True,
+                                      mc_dropout=dropout)
 
     # Repeat previous evaluation with sides switched
 
     # Initialize environment
-    env = _make_env(save_video=False)
+    env = _make_env(save_video=save_video)
     env.seed(1)
 
     # Initialize agents with switched sides
@@ -57,7 +62,8 @@ def main():
                                       env,
                                       attack=attack,
                                       num_eps=num_eps // 2,
-                                      return_infos=True)
+                                      return_infos=True,
+                                      mc_dropout=dropout)
 
     # Calculate the reward for player 1
     # Because player 1 and 2 are switched in the second evaluation, we the inverse is the reward for p1
