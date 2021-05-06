@@ -6,7 +6,7 @@ def main():
     max_agents = 9
     num_eval_eps = 50
     num_learn_steps = 1_000_000
-    num_learn_steps_pre_training = 1_000_000  # pre-training is done only against rule-based opponent
+    num_learn_steps_pre_training = num_learn_steps  # pre-training is done only against rule-based opponent
     patience = 20
     image_observations = False
     output_folder = "output"

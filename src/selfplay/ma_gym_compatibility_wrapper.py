@@ -66,7 +66,7 @@ class MAGymCompatibilityWrapper(gym.Wrapper):
         opponent_action, _states = self.opponent.predict(np.array(obs_for_opponent), deterministic=False)
 
         # action = list(action)
-        if isinstance(opponent_action, list) or isinstance(opponent_action, np.ndarray):
+        if isinstance(opponent_action, list) or (isinstance(opponent_action, np.ndarray) and len(opponent_action.shape) > 0):
             opponent_action = opponent_action[0]
         if isinstance(action, list) or isinstance(action, np.ndarray):
             action = action[0]

@@ -46,7 +46,8 @@ def main():
                                       attack=attack,
                                       num_eps=num_eps // 2,
                                       return_infos=True,
-                                      mc_dropout=dropout)
+                                      mc_dropout=dropout,
+                                      eval_name=eval_name+"_left")
 
     # Repeat previous evaluation with sides switched
 
@@ -63,7 +64,8 @@ def main():
                                       attack=attack,
                                       num_eps=num_eps // 2,
                                       return_infos=True,
-                                      mc_dropout=dropout)
+                                      mc_dropout=dropout,
+                                      eval_name=eval_name+"_right")
 
     # Calculate the reward for player 1
     # Because player 1 and 2 are switched in the second evaluation, we the inverse is the reward for p1
