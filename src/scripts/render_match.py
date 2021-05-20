@@ -16,12 +16,13 @@ from ma_gym.envs.pong_duel import pong_duel
 
 
 def main():
-    model_dir = '../../output/models/'
+    model_dir = '/home/pavelc/_code/output/ucb/remote/models/'
+    #model_dir = "/home/pavel/code/tum-adlr/output/ucb/models/"
     attack = None
-    save_video = True
+    save_video = False
 
-    agent_name = 'models/gcp-feature-based-op-obs7.out'
-    op_name = 'finetuneA2.out'  # 'models/gcp-feature-based-op-obs7.out'  # "gcp-fine-tuned2.out"
+    agent_name = 'dropout1M-remote25.out'
+    op_name = '../adversaries/models/do-1M-adversary.out1.out'  # 'models/gcp-feature-based-op-obs7.out'  # "gcp-fine-tuned2.out"
 
     # Initialize environment
     env = _make_env(save_video=save_video, max_rounds=10)

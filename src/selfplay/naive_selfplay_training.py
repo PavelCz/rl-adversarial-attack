@@ -72,7 +72,7 @@ def learn_with_selfplay(max_agents,
 
     # If fine tuning, load model to fine-tune from path
     if fine_tune_on is not None:
-        path = Path(output_folder) / 'models' / fine_tune_on
+        path = (Path(output_folder) / 'models' / fine_tune_on).resolve()
         fine_tune_model = DQN.load(path)
         fine_tune_model.tensorboard_log = None
         if opponent_pred_obs:

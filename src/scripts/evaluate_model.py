@@ -18,16 +18,21 @@ def main():
     # Only necessary for when working with image observations
     pong_duel.AGENT_COLORS[1] = 'red'
 
-    model_dir = 'scripts/output/models/'
+    #model_dir = '/home/pavelc/_code/output/ucb/remote/models/'
+    model_dir = "/home/pavel/code/tum-adlr/output/ucb/models/"
+    # model_dir = "../output/ucb/models/"
     num_eps = 200
     attack = None
     dropout = True
     save_video = False
-    eval_name = ""
+    eval_name = "better-bins-do-vs-adv"
 
     # agent_name = 'AdversaryA.pth'
-    agent_name = 'dropout100k3.out'
-    op_name = 'dropout100k3.out'  # 'gcp-feature-based-op-obs7.out'
+    agent_name = 'dropout1M-remote25.out'
+    # op_name = 'dropout1M-remote25.out'
+    op_name = '../adversaries/models/do-1M-adversary.out2.out'  # 'gcp-feature-based-op-obs7.out'
+    #agent_name = "dropout100k3.out"
+    #op_name = "dropout100k3.out"
     # agent_name = 'gcp-feature-based-op-obs6.out'
     # op_name = 'gcp-feature-based-op-obs6.out'
     # op_name = 'models/gcp-feature-based-op-obs6.out'
@@ -54,30 +59,30 @@ def main():
     # Initialize environment
     env = _make_env(save_video=save_video)
     env.seed(1)
-
-    # Initialize agents with switched sides
-    model, op = _make_agents(env, model_dir, op_name, op_name=agent_name)
-
-    env.set_opponent(op)
-    avg_reward2, _, infos2 = evaluate(model,
-                                      env,
-                                      attack=attack,
-                                      num_eps=num_eps // 2,
-                                      return_infos=True,
-                                      mc_dropout=dropout,
-                                      eval_name=eval_name+"_right")
+    #
+    # # Initialize agents with switched sides
+    # model, op = _make_agents(env, model_dir, op_name, op_name=agent_name)
+    #
+    # env.set_opponent(op)
+    # avg_reward2, _, infos2 = evaluate(model,
+    #                                   env,
+    #                                   attack=attack,
+    #                                   num_eps=num_eps // 2,
+    #                                   return_infos=True,
+    #                                   mc_dropout=dropout,
+    #                                   eval_name=eval_name+"_right")
 
     # Calculate the reward for player 1
     # Because player 1 and 2 are switched in the second evaluation, we the inverse is the reward for p1
-    avg_reward = (avg_reward1 + (1 - avg_reward2)) / 2
+    avg_reward = (avg_reward1)# + (1 - avg_reward2)) / 2
 
-    p1_hits = infos1['p1_ball_hits'] + infos2['p2_ball_hits']
-    p1_ball_receives = infos1['ball_moved_towards_p1'] + infos2['ball_moved_towards_p2']
+    p1_hits = infos1['p1_ball_hits']# + infos2['p2_ball_hits']
+    p1_ball_receives = infos1['ball_moved_towards_p1'] #+ infos2['ball_moved_towards_p2']
     p1_misses = p1_ball_receives - p1_hits
     p1_miss_percentage = p1_misses / p1_ball_receives
 
-    p2_hits = infos1['p2_ball_hits'] + infos2['p1_ball_hits']
-    p2_ball_receives = infos1['ball_moved_towards_p2'] + infos2['ball_moved_towards_p1']
+    p2_hits = infos1['p2_ball_hits']# + infos2['p1_ball_hits']
+    p2_ball_receives = infos1['ball_moved_towards_p2']# + infos2['ball_moved_towards_p1']
     p2_misses = p2_ball_receives - p2_hits
     p2_miss_percentage = p2_misses / p2_ball_receives
 

@@ -113,9 +113,18 @@ def evaluate(model, env, num_eps: int, slowness=0.05, render=False, save_perturb
         env.close()
 
         if mc_dropout:
-            eval_writer.add_histogram(tag=f"uncertainty/vars",
+            eval_writer.add_histogram(tag=f"best_vars_hist_tb",
                                       values=np.array(all_variances),
-                                      global_step=0)
+                                      global_step=0,
+                                      bins="tensorflow")
+            eval_writer.add_histogram(tag=f"best_vars_hist_auto",
+                                      values=np.array(all_variances),
+                                      global_step=0,
+                                      bins="auto")
+            eval_writer.add_histogram(tag=f"best_vars_hist_custom",
+                                      values=np.array(all_variances),
+                                      global_step=0,
+                                      bins=100)
 
         avg_round_reward = total_reward / total_rounds
 
