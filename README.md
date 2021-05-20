@@ -6,6 +6,11 @@ Project for the course *Advanced Deep Learning for Robotics*
 
 Group `tum-adlr-ws20-03`
 
+## Contributors
+
+- [Pavel](https://github.com/PavelCz)
+- [Hans](https://github.com/hans66hsu)
+
 ## Requirements
 
 Some requirements only work with python 3.7
