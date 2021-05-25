@@ -1,6 +1,7 @@
 # Adversarial Attacks on Reinforcement Learning Agents Trained with Self-Play in a Low-Dimensional Pong Environment
 
-Attack using FGSM (perturbation in observation space), attack using adversarial policies
+- Attack using **FGSM** (perturbation in observation space)
+- Attack using **adversarial policies**
 
 Project for the course *Advanced Deep Learning for Robotics*
 
